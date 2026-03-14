@@ -1,0 +1,58 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build output
+/bin/
+/build/
+/dist/
+*.test
+*.out
+/docstore
+/api
+/worker
+
+# Go workspace
+go.work
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config with secrets (keep a sample only)
+configs/config.local.json
+.env
+.env.local
+*.local.json
+
+# Storage (uploaded/processed files)
+/storage/
+storage/
+
+# Logs
+*.log
+logs/
+
+# Dependencies (if you vendor)
+/vendor/
+
+# Coverage
+coverage.html
+coverage.out
+*.coverprofile
+
+# Temporary
+tmp/
+temp/
+/tmp
+/temp
