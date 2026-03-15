@@ -1,0 +1,157 @@
+swagger: "2.0"
+info:
+  title: docstore API
+  version: "1.0"
+basePath: /
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      consumes: [application/json]
+      produces: [application/json]
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:    { type: string, format: email }
+              password: { type: string }
+      responses:
+        201:
+          description: Created
+        400:
+          description: Bad request
+        409:
+          description: Email already exists
+
+  /users/login:
+    post:
+      summary: Login
+      consumes: [application/json]
+      produces: [application/json]
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:    { type: string, format: email }
+              password: { type: string }
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        401:
+          description: Invalid credentials
+
+  /users/profile:
+    get:
+      summary: Get current user profile
+      produces: [application/json]
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: OK
+        401:
+          description: Unauthorized
+    post:
+      summary: Update user profile
+      consumes: [application/json]
+      produces: [application/json]
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              name:    { type: string }
+              address: { type: string }
+              dob:     { type: string, format: date }
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+
+  /documents:
+    post:
+      summary: Upload document
+      consumes: [multipart/form-data]
+      produces: [application/json]
+      security:
+        - Bearer: []
+      parameters:
+        - in: formData
+          name: file
+          type: file
+          required: true
+          description: The document file to upload
+        - in: formData
+          name: filename
+          type: string
+          description: Optional filename override
+      responses:
+        201:
+          description: Created
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+    get:
+      summary: List documents for the current user
+      produces: [application/json]
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: List of documents
+        401:
+          description: Unauthorized
+
+  /documents/{id}:
+    get:
+      summary: Get document by ID
+      produces: [application/json]
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          format: int64
+          required: true
+          description: Document ID
+      responses:
+        200:
+          description: Document details
+        404:
+          description: Not found
+        401:
+          description: Unauthorized
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: Bearer token (e.g. "Bearer &lt;token&gt;")
+
+security: []

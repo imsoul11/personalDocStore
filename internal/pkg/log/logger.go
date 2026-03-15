@@ -3,7 +3,6 @@ package log
 import (
 	"os"
 	"strings"
-
 	"github.com/rs/zerolog"
 )
 
@@ -34,6 +33,6 @@ func New(level string){
 	logger = zerolog.New(os.Stdout).With().Timestamp().Logger().Level(zl)
 }
 
-func Logger() zerolog.Logger {
-	return logger
+func Logger() *zerolog.Logger {
+	return &logger
 }

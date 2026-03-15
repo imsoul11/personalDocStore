@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-    Server  ServerConfig  `json:"server"`
+    Server  ServerConfig    `json:"server"`
     Database DatabaseConfig `json:"database"`
     RabbitMQ RabbitMQConfig `json:"rabbitmq"`
     Storage  StorageConfig  `json:"storage"`
@@ -28,8 +28,8 @@ type RabbitMQConfig struct {
 }
 
 type StorageConfig struct {
-	UploadPath   string `json:"upload_path"`
-	ProcessedPath string `json:"processed_path"`
+	UploadPath     string `json:"upload_path"`
+	ProcessedPath  string `json:"processed_path"`
 }
 
 type LogConfig struct {
