@@ -4,12 +4,18 @@ package restapi
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/imsoul11/personalDocStore/internal/app"
+	appapi "github.com/imsoul11/personalDocStore/internal/app/api"
 	"github.com/imsoul11/personalDocStore/restapi/operations"
 )
 
@@ -20,6 +26,9 @@ func configureFlags(api *operations.DocstoreAPI) {
 }
 
 func configureAPI(api *operations.DocstoreAPI) http.Handler {
+	// Initialise the application (DB, store, API implementers).
+	app.Init()
+
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -38,11 +47,37 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	// Applies when the "Authorization" header is set
-	if api.BearerAuth == nil {
-		api.BearerAuth = func(token string) (interface{}, error) {
-			return nil, errors.NotImplemented("api key auth (Bearer) Authorization from header param [Authorization] has not yet been implemented")
-		}
+	// BearerAuth: validates JWT token and returns the user ID as principal.
+	api.BearerAuth = func(tokenStr string) (interface{}, error) {
+			// Strip "Bearer " prefix if present
+			tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+
+			jwtSecret := os.Getenv("JWT_SECRET")
+			if jwtSecret == "" {
+				jwtSecret = "changeme"
+			}
+
+			token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+				}
+				return []byte(jwtSecret), nil
+			})
+			if err != nil || !token.Valid {
+				return nil, errors.New(401, "invalid token")
+			}
+
+			claims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				return nil, errors.New(401, "invalid token claims")
+			}
+
+			userIDFloat, ok := claims["user_id"].(float64)
+			if !ok {
+				return nil, errors.New(401, "invalid user_id in token")
+			}
+
+			return int64(userIDFloat), nil
 	}
 
 	// Set your custom authorizer if needed. Default one is security.Authorized()
@@ -53,41 +88,33 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// operations.PostDocumentsMaxParseMemory = 32 << 20
 
-	if api.GetDocumentsHandler == nil {
-		api.GetDocumentsHandler = operations.GetDocumentsHandlerFunc(func(params operations.GetDocumentsParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetDocuments has not yet been implemented")
-		})
-	}
-	if api.GetDocumentsIDHandler == nil {
-		api.GetDocumentsIDHandler = operations.GetDocumentsIDHandlerFunc(func(params operations.GetDocumentsIDParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetDocumentsID has not yet been implemented")
-		})
-	}
-	if api.GetUsersProfileHandler == nil {
-		api.GetUsersProfileHandler = operations.GetUsersProfileHandlerFunc(func(params operations.GetUsersProfileParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetUsersProfile has not yet been implemented")
-		})
-	}
-	if api.PostDocumentsHandler == nil {
-		api.PostDocumentsHandler = operations.PostDocumentsHandlerFunc(func(params operations.PostDocumentsParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostDocuments has not yet been implemented")
-		})
-	}
-	if api.PostUsersLoginHandler == nil {
-		api.PostUsersLoginHandler = operations.PostUsersLoginHandlerFunc(func(params operations.PostUsersLoginParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostUsersLogin has not yet been implemented")
-		})
-	}
-	if api.PostUsersProfileHandler == nil {
-		api.PostUsersProfileHandler = operations.PostUsersProfileHandlerFunc(func(params operations.PostUsersProfileParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostUsersProfile has not yet been implemented")
-		})
-	}
-	if api.PostUsersRegisterHandler == nil {
-		api.PostUsersRegisterHandler = operations.PostUsersRegisterHandlerFunc(func(params operations.PostUsersRegisterParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostUsersRegister has not yet been implemented")
-		})
-	}
+	api.GetDocumentsHandler = operations.GetDocumentsHandlerFunc(func(params operations.GetDocumentsParams, principal interface{}) middleware.Responder {
+		return appapi.Cfg.DocumentsAPI.GetDocuments(params.HTTPRequest.Context(), params, principal)
+	})
+
+	api.GetDocumentsIDHandler = operations.GetDocumentsIDHandlerFunc(func(params operations.GetDocumentsIDParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation operations.GetDocumentsID has not yet been implemented")
+	})
+
+	api.GetUsersProfileHandler = operations.GetUsersProfileHandlerFunc(func(params operations.GetUsersProfileParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation operations.GetUsersProfile has not yet been implemented")
+	})
+
+	api.PostDocumentsHandler = operations.PostDocumentsHandlerFunc(func(params operations.PostDocumentsParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation operations.PostDocuments has not yet been implemented")
+	})
+
+	api.PostUsersLoginHandler = operations.PostUsersLoginHandlerFunc(func(params operations.PostUsersLoginParams) middleware.Responder {
+		return appapi.Cfg.UsersAPI.PostUsersLogin(params.HTTPRequest.Context(), params)
+	})
+
+	api.PostUsersProfileHandler = operations.PostUsersProfileHandlerFunc(func(params operations.PostUsersProfileParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation operations.PostUsersProfile has not yet been implemented")
+	})
+
+	api.PostUsersRegisterHandler = operations.PostUsersRegisterHandlerFunc(func(params operations.PostUsersRegisterParams) middleware.Responder {
+		return appapi.Cfg.UsersAPI.PostUsersRegister(params.HTTPRequest.Context(), params)
+	})
 
 	api.PreServerShutdown = func() {}
 
