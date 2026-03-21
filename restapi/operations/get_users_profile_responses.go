@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // GetUsersProfileOKCode is the HTTP code returned for type GetUsersProfileOK
@@ -20,6 +22,11 @@ GetUsersProfileOK OK
 swagger:response getUsersProfileOK
 */
 type GetUsersProfileOK struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.AckResponse `json:"body,omitempty"`
 }
 
 // NewGetUsersProfileOK creates GetUsersProfileOK with default headers values
@@ -28,12 +35,27 @@ func NewGetUsersProfileOK() *GetUsersProfileOK {
 	return &GetUsersProfileOK{}
 }
 
+// WithPayload adds the payload to the get users profile o k response
+func (o *GetUsersProfileOK) WithPayload(payload *models.AckResponse) *GetUsersProfileOK {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get users profile o k response
+func (o *GetUsersProfileOK) SetPayload(payload *models.AckResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetUsersProfileOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(200)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // GetUsersProfileUnauthorizedCode is the HTTP code returned for type GetUsersProfileUnauthorized
@@ -45,6 +67,11 @@ GetUsersProfileUnauthorized Unauthorized
 swagger:response getUsersProfileUnauthorized
 */
 type GetUsersProfileUnauthorized struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewGetUsersProfileUnauthorized creates GetUsersProfileUnauthorized with default headers values
@@ -53,10 +80,25 @@ func NewGetUsersProfileUnauthorized() *GetUsersProfileUnauthorized {
 	return &GetUsersProfileUnauthorized{}
 }
 
+// WithPayload adds the payload to the get users profile unauthorized response
+func (o *GetUsersProfileUnauthorized) WithPayload(payload *models.ErrorResponse) *GetUsersProfileUnauthorized {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get users profile unauthorized response
+func (o *GetUsersProfileUnauthorized) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetUsersProfileUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(401)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

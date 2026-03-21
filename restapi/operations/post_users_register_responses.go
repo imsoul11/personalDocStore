@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // PostUsersRegisterCreatedCode is the HTTP code returned for type PostUsersRegisterCreated
@@ -20,6 +22,11 @@ PostUsersRegisterCreated Created
 swagger:response postUsersRegisterCreated
 */
 type PostUsersRegisterCreated struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.AckResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersRegisterCreated creates PostUsersRegisterCreated with default headers values
@@ -28,12 +35,27 @@ func NewPostUsersRegisterCreated() *PostUsersRegisterCreated {
 	return &PostUsersRegisterCreated{}
 }
 
+// WithPayload adds the payload to the post users register created response
+func (o *PostUsersRegisterCreated) WithPayload(payload *models.AckResponse) *PostUsersRegisterCreated {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users register created response
+func (o *PostUsersRegisterCreated) SetPayload(payload *models.AckResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersRegisterCreated) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(201)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostUsersRegisterBadRequestCode is the HTTP code returned for type PostUsersRegisterBadRequest
@@ -45,6 +67,11 @@ PostUsersRegisterBadRequest Bad request
 swagger:response postUsersRegisterBadRequest
 */
 type PostUsersRegisterBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersRegisterBadRequest creates PostUsersRegisterBadRequest with default headers values
@@ -53,12 +80,27 @@ func NewPostUsersRegisterBadRequest() *PostUsersRegisterBadRequest {
 	return &PostUsersRegisterBadRequest{}
 }
 
+// WithPayload adds the payload to the post users register bad request response
+func (o *PostUsersRegisterBadRequest) WithPayload(payload *models.ErrorResponse) *PostUsersRegisterBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users register bad request response
+func (o *PostUsersRegisterBadRequest) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersRegisterBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostUsersRegisterConflictCode is the HTTP code returned for type PostUsersRegisterConflict
@@ -70,6 +112,11 @@ PostUsersRegisterConflict Email already exists
 swagger:response postUsersRegisterConflict
 */
 type PostUsersRegisterConflict struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersRegisterConflict creates PostUsersRegisterConflict with default headers values
@@ -78,10 +125,25 @@ func NewPostUsersRegisterConflict() *PostUsersRegisterConflict {
 	return &PostUsersRegisterConflict{}
 }
 
+// WithPayload adds the payload to the post users register conflict response
+func (o *PostUsersRegisterConflict) WithPayload(payload *models.ErrorResponse) *PostUsersRegisterConflict {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users register conflict response
+func (o *PostUsersRegisterConflict) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersRegisterConflict) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(409)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

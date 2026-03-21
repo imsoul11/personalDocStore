@@ -47,10 +47,16 @@ func init() {
         "summary": "List documents for the current user",
         "responses": {
           "200": {
-            "description": "List of documents"
+            "description": "List of documents",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       },
@@ -84,13 +90,22 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -118,13 +133,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Document details"
+            "description": "Document details",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "404": {
-            "description": "Not found"
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -163,13 +187,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Invalid credentials"
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -187,10 +220,16 @@ func init() {
         "summary": "Get current user profile",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       },
@@ -230,13 +269,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -275,14 +323,91 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "409": {
-            "description": "Email already exists"
+            "description": "Email already exists",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AckResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Request processed successfully"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Request failed"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "example": 400
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid request payload"
+        },
+        "success": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "token"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Login successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "token": {
+          "type": "string"
         }
       }
     }
@@ -326,10 +451,16 @@ func init() {
         "summary": "List documents for the current user",
         "responses": {
           "200": {
-            "description": "List of documents"
+            "description": "List of documents",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       },
@@ -363,13 +494,22 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -397,13 +537,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Document details"
+            "description": "Document details",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "404": {
-            "description": "Not found"
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -442,13 +591,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Invalid credentials"
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -466,10 +624,16 @@ func init() {
         "summary": "Get current user profile",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       },
@@ -509,13 +673,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -554,14 +727,91 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AckResponse"
+            }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "409": {
-            "description": "Email already exists"
+            "description": "Email already exists",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AckResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Request processed successfully"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Request failed"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "example": 400
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid request payload"
+        },
+        "success": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "token"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Login successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "token": {
+          "type": "string"
         }
       }
     }

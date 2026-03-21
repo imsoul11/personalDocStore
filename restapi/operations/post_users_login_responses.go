@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // PostUsersLoginOKCode is the HTTP code returned for type PostUsersLoginOK
@@ -20,6 +22,11 @@ PostUsersLoginOK OK
 swagger:response postUsersLoginOK
 */
 type PostUsersLoginOK struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.LoginResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersLoginOK creates PostUsersLoginOK with default headers values
@@ -28,12 +35,27 @@ func NewPostUsersLoginOK() *PostUsersLoginOK {
 	return &PostUsersLoginOK{}
 }
 
+// WithPayload adds the payload to the post users login o k response
+func (o *PostUsersLoginOK) WithPayload(payload *models.LoginResponse) *PostUsersLoginOK {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users login o k response
+func (o *PostUsersLoginOK) SetPayload(payload *models.LoginResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersLoginOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(200)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostUsersLoginBadRequestCode is the HTTP code returned for type PostUsersLoginBadRequest
@@ -45,6 +67,11 @@ PostUsersLoginBadRequest Bad request
 swagger:response postUsersLoginBadRequest
 */
 type PostUsersLoginBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersLoginBadRequest creates PostUsersLoginBadRequest with default headers values
@@ -53,12 +80,27 @@ func NewPostUsersLoginBadRequest() *PostUsersLoginBadRequest {
 	return &PostUsersLoginBadRequest{}
 }
 
+// WithPayload adds the payload to the post users login bad request response
+func (o *PostUsersLoginBadRequest) WithPayload(payload *models.ErrorResponse) *PostUsersLoginBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users login bad request response
+func (o *PostUsersLoginBadRequest) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersLoginBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostUsersLoginUnauthorizedCode is the HTTP code returned for type PostUsersLoginUnauthorized
@@ -70,6 +112,11 @@ PostUsersLoginUnauthorized Invalid credentials
 swagger:response postUsersLoginUnauthorized
 */
 type PostUsersLoginUnauthorized struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostUsersLoginUnauthorized creates PostUsersLoginUnauthorized with default headers values
@@ -78,10 +125,25 @@ func NewPostUsersLoginUnauthorized() *PostUsersLoginUnauthorized {
 	return &PostUsersLoginUnauthorized{}
 }
 
+// WithPayload adds the payload to the post users login unauthorized response
+func (o *PostUsersLoginUnauthorized) WithPayload(payload *models.ErrorResponse) *PostUsersLoginUnauthorized {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post users login unauthorized response
+func (o *PostUsersLoginUnauthorized) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostUsersLoginUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(401)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
