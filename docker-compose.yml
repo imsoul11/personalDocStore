@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: docstore-pg
+    environment:
+      POSTGRES_USER: docstore
+      POSTGRES_PASSWORD: docstore
+      POSTGRES_DB: docstore
+    ports:
+      - "5010:5432"
+    volumes:
+      - docstore_pg_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: docstore-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+volumes:
+  docstore_pg_data:
