@@ -29,10 +29,16 @@ paths:
       responses:
         201:
           description: Created
+          schema:
+            $ref: '#/definitions/AckResponse'
         400:
           description: Bad request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         409:
           description: Email already exists
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /users/login:
     post:
@@ -52,10 +58,16 @@ paths:
       responses:
         200:
           description: OK
+          schema:
+            $ref: '#/definitions/LoginResponse'
         400:
           description: Bad request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         401:
           description: Invalid credentials
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /users/profile:
     get:
@@ -66,8 +78,12 @@ paths:
       responses:
         200:
           description: OK
+          schema:
+            $ref: '#/definitions/AckResponse'
         401:
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     post:
       summary: Update user profile
       consumes: [application/json]
@@ -86,10 +102,16 @@ paths:
       responses:
         200:
           description: OK
+          schema:
+            $ref: '#/definitions/AckResponse'
         400:
           description: Bad request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         401:
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /documents:
     post:
@@ -111,10 +133,16 @@ paths:
       responses:
         201:
           description: Created
+          schema:
+            $ref: '#/definitions/AckResponse'
         400:
           description: Bad request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         401:
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     get:
       summary: List documents for the current user
       produces: [application/json]
@@ -123,8 +151,12 @@ paths:
       responses:
         200:
           description: List of documents
+          schema:
+            $ref: '#/definitions/AckResponse'
         401:
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /documents/{id}:
     get:
@@ -142,11 +174,60 @@ paths:
       responses:
         200:
           description: Document details
+          schema:
+            $ref: '#/definitions/AckResponse'
         404:
           description: Not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         401:
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
+definitions:
+  AckResponse:
+    type: object
+    required: [success, acknowledgement]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Request processed successfully
+
+  LoginResponse:
+    type: object
+    required: [success, acknowledgement, token]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Login successful
+      token:
+        type: string
+
+  ErrorResponse:
+    type: object
+    required: [success, acknowledgement, code, message]
+    properties:
+      success:
+        type: boolean
+        example: false
+      acknowledgement:
+        type: string
+        example: Request failed
+      code:
+        type: integer
+        format: int32
+        example: 400
+      message:
+        type: string
+        example: Invalid request payload
+        
 securityDefinitions:
   Bearer:
     type: apiKey
