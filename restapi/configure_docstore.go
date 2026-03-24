@@ -115,8 +115,8 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 	})
 
 	api.PostDocumentsHandler = operations.PostDocumentsHandlerFunc(func(params operations.PostDocumentsParams, principal interface{}) middleware.Responder {
-		log.Debug().Str("op", "route_post_documents").Msg("handler hit (not implemented)")
-		return middleware.NotImplemented("operation operations.PostDocuments has not yet been implemented")
+		log.Debug().Str("op", "route_post_documents").Msg("delegating to documents API")
+		return appapi.Cfg.DocumentsAPI.PostDocuments(params.HTTPRequest.Context(), params, principal)
 	})
 
 	api.PostUsersLoginHandler = operations.PostUsersLoginHandlerFunc(func(params operations.PostUsersLoginParams) middleware.Responder {
