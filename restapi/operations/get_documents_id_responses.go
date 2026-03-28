@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // GetDocumentsIDOKCode is the HTTP code returned for type GetDocumentsIDOK
@@ -20,6 +22,11 @@ GetDocumentsIDOK Document details
 swagger:response getDocumentsIdOK
 */
 type GetDocumentsIDOK struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.AckResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsIDOK creates GetDocumentsIDOK with default headers values
@@ -28,12 +35,27 @@ func NewGetDocumentsIDOK() *GetDocumentsIDOK {
 	return &GetDocumentsIDOK{}
 }
 
+// WithPayload adds the payload to the get documents Id o k response
+func (o *GetDocumentsIDOK) WithPayload(payload *models.AckResponse) *GetDocumentsIDOK {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents Id o k response
+func (o *GetDocumentsIDOK) SetPayload(payload *models.AckResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetDocumentsIDOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(200)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // GetDocumentsIDUnauthorizedCode is the HTTP code returned for type GetDocumentsIDUnauthorized
@@ -45,6 +67,11 @@ GetDocumentsIDUnauthorized Unauthorized
 swagger:response getDocumentsIdUnauthorized
 */
 type GetDocumentsIDUnauthorized struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsIDUnauthorized creates GetDocumentsIDUnauthorized with default headers values
@@ -53,12 +80,27 @@ func NewGetDocumentsIDUnauthorized() *GetDocumentsIDUnauthorized {
 	return &GetDocumentsIDUnauthorized{}
 }
 
+// WithPayload adds the payload to the get documents Id unauthorized response
+func (o *GetDocumentsIDUnauthorized) WithPayload(payload *models.ErrorResponse) *GetDocumentsIDUnauthorized {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents Id unauthorized response
+func (o *GetDocumentsIDUnauthorized) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetDocumentsIDUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(401)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // GetDocumentsIDNotFoundCode is the HTTP code returned for type GetDocumentsIDNotFound
@@ -70,6 +112,11 @@ GetDocumentsIDNotFound Not found
 swagger:response getDocumentsIdNotFound
 */
 type GetDocumentsIDNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsIDNotFound creates GetDocumentsIDNotFound with default headers values
@@ -78,10 +125,25 @@ func NewGetDocumentsIDNotFound() *GetDocumentsIDNotFound {
 	return &GetDocumentsIDNotFound{}
 }
 
+// WithPayload adds the payload to the get documents Id not found response
+func (o *GetDocumentsIDNotFound) WithPayload(payload *models.ErrorResponse) *GetDocumentsIDNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents Id not found response
+func (o *GetDocumentsIDNotFound) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetDocumentsIDNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

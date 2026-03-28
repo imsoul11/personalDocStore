@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // GetDocumentsOKCode is the HTTP code returned for type GetDocumentsOK
@@ -20,6 +22,11 @@ GetDocumentsOK List of documents
 swagger:response getDocumentsOK
 */
 type GetDocumentsOK struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.AckResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsOK creates GetDocumentsOK with default headers values
@@ -28,12 +35,27 @@ func NewGetDocumentsOK() *GetDocumentsOK {
 	return &GetDocumentsOK{}
 }
 
+// WithPayload adds the payload to the get documents o k response
+func (o *GetDocumentsOK) WithPayload(payload *models.AckResponse) *GetDocumentsOK {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents o k response
+func (o *GetDocumentsOK) SetPayload(payload *models.AckResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetDocumentsOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(200)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // GetDocumentsUnauthorizedCode is the HTTP code returned for type GetDocumentsUnauthorized
@@ -45,6 +67,11 @@ GetDocumentsUnauthorized Unauthorized
 swagger:response getDocumentsUnauthorized
 */
 type GetDocumentsUnauthorized struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsUnauthorized creates GetDocumentsUnauthorized with default headers values
@@ -53,10 +80,25 @@ func NewGetDocumentsUnauthorized() *GetDocumentsUnauthorized {
 	return &GetDocumentsUnauthorized{}
 }
 
+// WithPayload adds the payload to the get documents unauthorized response
+func (o *GetDocumentsUnauthorized) WithPayload(payload *models.ErrorResponse) *GetDocumentsUnauthorized {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents unauthorized response
+func (o *GetDocumentsUnauthorized) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetDocumentsUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(401)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
