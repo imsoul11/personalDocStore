@@ -1,13 +1,16 @@
 package app
 
 import (
+	"context"
 	"log"
 	"os"
 
 	appapi "github.com/imsoul11/personalDocStore/internal/app/api"
 	"github.com/imsoul11/personalDocStore/internal/pkg/config"
 	"github.com/imsoul11/personalDocStore/internal/pkg/db"
+	pkglog "github.com/imsoul11/personalDocStore/internal/pkg/log"
 	"github.com/imsoul11/personalDocStore/internal/pkg/persistence"
+	"github.com/imsoul11/personalDocStore/internal/pkg/queue/rabbitmq"
 )
 
 // Init initialises the application: loads config, creates DB, creates the
@@ -19,6 +22,7 @@ import (
 // JWT secret is read from JWT_SECRET env var; defaults to "changeme".
 func Init() {
 	if appapi.Cfg != nil {
+		pkglog.Logger().Debug().Str("op", "app_init").Msg("app config already initialized")
 		return
 	}
 
@@ -29,23 +33,31 @@ func Init() {
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		jwtSecret = "changeme"
+		jwtSecret = "caskjdbaiudhhiadiasahiassdiuashdisaundasjn"
 	}
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
 		log.Fatalf("app.Init: config load failed: %v", err)
 	}
+	pkglog.New(cfg.Log.Level)
+	pkglog.Logger().Info().Str("op", "app_init").Str("config_path", configPath).Msg("config loaded")
 
 	dbInstance, err := db.New(cfg.Database)
 	if err != nil {
 		log.Fatalf("app.Init: db connect failed: %v", err)
 	}
+	pkglog.Logger().Info().Str("op", "app_init").Msg("database connection established")
+
+	ctx := context.Background()
+	broker := rabbitmq.New(ctx, cfg.RabbitMQ.URL)
+	pkglog.Logger().Info().Str("op", "app_init").Msg("rabbitmq connection established")
 
 	store := persistence.New(dbInstance)
 
 	appapi.Cfg = &appapi.Config{
-		DocumentsAPI: appapi.NewDocuments(store),
+		DocumentsAPI: appapi.NewDocuments(store, broker),
 		UsersAPI:     appapi.NewUsers(store, jwtSecret),
 	}
+	pkglog.Logger().Info().Str("op", "app_init").Msg("application APIs wired")
 }
