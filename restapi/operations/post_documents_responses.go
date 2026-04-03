@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"github.com/imsoul11/personalDocStore/models"
 )
 
 // PostDocumentsCreatedCode is the HTTP code returned for type PostDocumentsCreated
@@ -20,6 +22,11 @@ PostDocumentsCreated Created
 swagger:response postDocumentsCreated
 */
 type PostDocumentsCreated struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.AckResponse `json:"body,omitempty"`
 }
 
 // NewPostDocumentsCreated creates PostDocumentsCreated with default headers values
@@ -28,12 +35,27 @@ func NewPostDocumentsCreated() *PostDocumentsCreated {
 	return &PostDocumentsCreated{}
 }
 
+// WithPayload adds the payload to the post documents created response
+func (o *PostDocumentsCreated) WithPayload(payload *models.AckResponse) *PostDocumentsCreated {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post documents created response
+func (o *PostDocumentsCreated) SetPayload(payload *models.AckResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostDocumentsCreated) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(201)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostDocumentsBadRequestCode is the HTTP code returned for type PostDocumentsBadRequest
@@ -45,6 +67,11 @@ PostDocumentsBadRequest Bad request
 swagger:response postDocumentsBadRequest
 */
 type PostDocumentsBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostDocumentsBadRequest creates PostDocumentsBadRequest with default headers values
@@ -53,12 +80,27 @@ func NewPostDocumentsBadRequest() *PostDocumentsBadRequest {
 	return &PostDocumentsBadRequest{}
 }
 
+// WithPayload adds the payload to the post documents bad request response
+func (o *PostDocumentsBadRequest) WithPayload(payload *models.ErrorResponse) *PostDocumentsBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post documents bad request response
+func (o *PostDocumentsBadRequest) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostDocumentsBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // PostDocumentsUnauthorizedCode is the HTTP code returned for type PostDocumentsUnauthorized
@@ -70,6 +112,11 @@ PostDocumentsUnauthorized Unauthorized
 swagger:response postDocumentsUnauthorized
 */
 type PostDocumentsUnauthorized struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
 }
 
 // NewPostDocumentsUnauthorized creates PostDocumentsUnauthorized with default headers values
@@ -78,10 +125,25 @@ func NewPostDocumentsUnauthorized() *PostDocumentsUnauthorized {
 	return &PostDocumentsUnauthorized{}
 }
 
+// WithPayload adds the payload to the post documents unauthorized response
+func (o *PostDocumentsUnauthorized) WithPayload(payload *models.ErrorResponse) *PostDocumentsUnauthorized {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post documents unauthorized response
+func (o *PostDocumentsUnauthorized) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *PostDocumentsUnauthorized) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(401)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
