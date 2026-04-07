@@ -134,7 +134,7 @@ paths:
         201:
           description: Created
           schema:
-            $ref: '#/definitions/AckResponse'
+            $ref: '#/definitions/DocumentCreatedResponse'
         400:
           description: Bad request
           schema:
@@ -152,7 +152,7 @@ paths:
         200:
           description: List of documents
           schema:
-            $ref: '#/definitions/AckResponse'
+            $ref: '#/definitions/DocumentsListResponse'
         401:
           description: Unauthorized
           schema:
@@ -186,6 +186,53 @@ paths:
             $ref: '#/definitions/ErrorResponse'
 
 definitions:
+  Document:
+    type: object
+    required: [id, user_id, filename, status, created_at]
+    properties:
+      id:
+        type: integer
+        format: int64
+      user_id:
+        type: integer
+        format: int64
+      filename:
+        type: string
+      status:
+        type: string
+        example: uploaded
+      created_at:
+        type: string
+        format: date-time
+
+  DocumentCreatedResponse:
+    type: object
+    required: [success, acknowledgement, document]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Document uploaded and queued for processing
+      document:
+        $ref: '#/definitions/Document'
+
+  DocumentsListResponse:
+    type: object
+    required: [success, acknowledgement, documents]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Documents fetched successfully
+      documents:
+        type: array
+        items:
+          $ref: '#/definitions/Document'
+
   AckResponse:
     type: object
     required: [success, acknowledgement]

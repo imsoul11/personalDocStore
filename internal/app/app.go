@@ -13,6 +13,12 @@ import (
 	"github.com/imsoul11/personalDocStore/internal/pkg/queue/rabbitmq"
 )
 
+var jwtSecretValue string
+
+func JWTSecret() string {
+	return jwtSecretValue
+}
+
 // Init initialises the application: loads config, creates DB, creates the
 // persistence store, and wires the API implementers.
 // It is idempotent – calling it more than once is safe.
@@ -35,6 +41,7 @@ func Init() {
 	if jwtSecret == "" {
 		jwtSecret = "caskjdbaiudhhiadiasahiassdiuashdisaundasjn"
 	}
+	jwtSecretValue = jwtSecret
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
