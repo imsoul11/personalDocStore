@@ -7,14 +7,17 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
 	pkglog "github.com/imsoul11/personalDocStore/internal/pkg/log"
-	"github.com/imsoul11/personalDocStore/internal/pkg/models"
+	intmodels "github.com/imsoul11/personalDocStore/internal/pkg/models"
 	"github.com/imsoul11/personalDocStore/internal/pkg/persistence"
 	"github.com/imsoul11/personalDocStore/internal/pkg/queue/rabbitmq"
+	swgmodels "github.com/imsoul11/personalDocStore/models"
 	"github.com/imsoul11/personalDocStore/restapi/operations"
 )
 
@@ -53,10 +56,36 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 		})
 	}
 	log.Info().Str("op", "get_documents").Int64("user_id", userID).Int("documents_count", len(docs)).Msg("documents fetched")
-	
-	_ = docs // response body not in spec yet; return OK
+
 	_ = params
-	return operations.NewGetDocumentsOK()
+
+	success := true
+	ack := "Documents fetched successfully"
+	respDocs := make([]*swgmodels.Document, 0, len(docs))
+	for _, doc := range docs {
+		if doc == nil {
+			continue
+		}
+		id := doc.ID
+		uid := doc.UserID
+		filename := doc.Filename
+		status := doc.Status
+		created := strfmt.DateTime(doc.CreatedAt)
+
+		respDocs = append(respDocs, &swgmodels.Document{
+			ID:        &id,
+			UserID:    &uid,
+			Filename:  &filename,
+			Status:    &status,
+			CreatedAt: &created,
+		})
+	}
+
+	return operations.NewGetDocumentsOK().WithPayload(&swgmodels.DocumentsListResponse{
+		Success:         &success,
+		Acknowledgement: &ack,
+		Documents:       respDocs,
+	})
 }
 
 func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocumentsParams, principal interface{}) middleware.Responder {
@@ -72,11 +101,26 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	if params.Filename != nil {
 		filename = *params.Filename
 	}
-	if filename == "" {
-		filename = fmt.Sprintf("doc_%d_%d", userID, time.Now().Unix())
+
+	// Close uploaded stream when we're done
+	if params.File != nil {
+		defer func() {
+			_ = params.File.Close()
+		}()
 	}
 
-	log.Info().Str("op", "post_documents").Int64("user_id", userID).Str("filename", filename).Msg("document upload request")
+	// Sanitize filename to avoid path traversal / separators
+	filename = strings.TrimSpace(filename)
+	if filename == "" {
+		filename = "upload"
+	}
+	filename = filepath.Base(filename)
+	filename = strings.ReplaceAll(filename, string(os.PathSeparator), "_")
+
+	// Prefix with user+timestamp to avoid collisions/overwrites
+	storedName := fmt.Sprintf("%d_%d_%s", userID, time.Now().UnixNano(), filename)
+
+	log.Info().Str("op", "post_documents").Int64("user_id", userID).Str("filename", storedName).Msg("document upload request")
 
 	// Create upload directory if it doesn't exist
 	uploadDir := "./storage/uploads"
@@ -86,8 +130,8 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	}
 
 	// Save file to disk
-	filePath := filepath.Join(uploadDir, filename)
-	outFile, err := os.Create(filePath)
+	filePath := filepath.Join(uploadDir, storedName)
+	outFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		log.Error().Err(err).Str("path", filePath).Msg("failed to create file")
 		return operations.NewPostDocumentsBadRequest()
@@ -103,9 +147,9 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	log.Info().Str("op", "post_documents").Str("path", filePath).Msg("file saved to disk")
 
 	// Save document metadata to database
-	doc := &models.Document{
+	doc := &intmodels.Document{
 		UserID:    userID,
-		Filename:  filename,
+		Filename:  storedName,
 		Status:    "uploaded",
 		CreatedAt: time.Now(),
 	}
@@ -117,13 +161,31 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	log.Info().Str("op", "post_documents").Int64("document_id", doc.ID).Msg("document metadata saved")
 
 	// Enqueue task to process the document
-	err = d.broker.EnqueueTask("process_document", filePath)
+	err = d.broker.EnqueueTask("process_document", fmt.Sprint(doc.ID), filePath)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to enqueue task")
 		return operations.NewPostDocumentsBadRequest()
 	}
 
-	log.Info().Str("op", "post_documents").Str("filename", filename).Msg("document processing task enqueued")
-	
-	return operations.NewPostDocumentsCreated()
+	log.Info().Str("op", "post_documents").Int64("document_id", doc.ID).Str("filename", storedName).Msg("document processing task enqueued")
+
+	success := true
+	ack := "Document uploaded and queued for processing"
+	id := doc.ID
+	uid := doc.UserID
+	filenameResp := doc.Filename
+	statusResp := doc.Status
+	created := strfmt.DateTime(doc.CreatedAt)
+
+	return operations.NewPostDocumentsCreated().WithPayload(&swgmodels.DocumentCreatedResponse{
+		Success:         &success,
+		Acknowledgement: &ack,
+		Document: &swgmodels.Document{
+			ID:        &id,
+			UserID:    &uid,
+			Filename:  &filenameResp,
+			Status:    &statusResp,
+			CreatedAt: &created,
+		},
+	})
 }
