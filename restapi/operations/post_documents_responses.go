@@ -26,7 +26,7 @@ type PostDocumentsCreated struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.AckResponse `json:"body,omitempty"`
+	Payload *models.DocumentCreatedResponse `json:"body,omitempty"`
 }
 
 // NewPostDocumentsCreated creates PostDocumentsCreated with default headers values
@@ -36,13 +36,13 @@ func NewPostDocumentsCreated() *PostDocumentsCreated {
 }
 
 // WithPayload adds the payload to the post documents created response
-func (o *PostDocumentsCreated) WithPayload(payload *models.AckResponse) *PostDocumentsCreated {
+func (o *PostDocumentsCreated) WithPayload(payload *models.DocumentCreatedResponse) *PostDocumentsCreated {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the post documents created response
-func (o *PostDocumentsCreated) SetPayload(payload *models.AckResponse) {
+func (o *PostDocumentsCreated) SetPayload(payload *models.DocumentCreatedResponse) {
 	o.Payload = payload
 }
 
