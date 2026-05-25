@@ -6,14 +6,13 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/imsoul11/personalDocStore/internal/app"
 	appapi "github.com/imsoul11/personalDocStore/internal/app/api"
@@ -54,41 +53,42 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 
 	// BearerAuth: validates JWT token and returns the user ID as principal.
 	api.BearerAuth = func(tokenStr string) (interface{}, error) {
-			log := pkglog.Logger()
-			// Strip "Bearer " prefix if present
-			tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+		log := pkglog.Logger()
+		// Strip "Bearer " prefix if present
+		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 
-			jwtSecret := os.Getenv("JWT_SECRET")
-			if jwtSecret == "" {
-				jwtSecret = "changeme"
-			}
+		jwtSecret := app.JWTSecret()
+		if jwtSecret == "" {
+			log.Error().Str("op", "bearer_auth").Msg("JWT secret not configured")
+			return nil, errors.New(500, "server auth not configured")
+		}
 
-			token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					log.Warn().Str("op", "bearer_auth").Interface("alg", t.Header["alg"]).Msg("unexpected signing method")
-					return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-				}
-				return []byte(jwtSecret), nil
-			})
-			if err != nil || !token.Valid {
-				log.Warn().Str("op", "bearer_auth").Err(err).Msg("token validation failed")
-				return nil, errors.New(401, "invalid token")
+		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				log.Warn().Str("op", "bearer_auth").Interface("alg", t.Header["alg"]).Msg("unexpected signing method")
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
+			return []byte(jwtSecret), nil
+		})
+		if err != nil || !token.Valid {
+			log.Warn().Str("op", "bearer_auth").Err(err).Msg("token validation failed")
+			return nil, errors.New(401, "invalid token")
+		}
 
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok {
-				log.Warn().Str("op", "bearer_auth").Msg("invalid token claims type")
-				return nil, errors.New(401, "invalid token claims")
-			}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			log.Warn().Str("op", "bearer_auth").Msg("invalid token claims type")
+			return nil, errors.New(401, "invalid token claims")
+		}
 
-			userIDFloat, ok := claims["user_id"].(float64)
-			if !ok {
-				log.Warn().Str("op", "bearer_auth").Msg("user_id claim missing or invalid")
-				return nil, errors.New(401, "invalid user_id in token")
-			}
-			userID := int64(userIDFloat)
-			log.Debug().Str("op", "bearer_auth").Int64("user_id", userID).Msg("token validated")
-			return userID, nil
+		userIDFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			log.Warn().Str("op", "bearer_auth").Msg("user_id claim missing or invalid")
+			return nil, errors.New(401, "invalid user_id in token")
+		}
+		userID := int64(userIDFloat)
+		log.Debug().Str("op", "bearer_auth").Int64("user_id", userID).Msg("token validated")
+		return userID, nil
 	}
 
 	// Set your custom authorizer if needed. Default one is security.Authorized()
@@ -105,8 +105,8 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 	})
 
 	api.GetDocumentsIDHandler = operations.GetDocumentsIDHandlerFunc(func(params operations.GetDocumentsIDParams, principal interface{}) middleware.Responder {
-		log.Debug().Str("op", "route_get_documents_id").Msg("handler hit (not implemented)")
-		return middleware.NotImplemented("operation operations.GetDocumentsID has not yet been implemented")
+		log.Debug().Str("op", "route_get_documents_id").Msg("delegating to documents API")
+		return appapi.Cfg.DocumentsAPI.GetDocumentsID(params.HTTPRequest.Context(), params, principal)
 	})
 
 	api.GetUsersProfileHandler = operations.GetUsersProfileHandlerFunc(func(params operations.GetUsersProfileParams, principal interface{}) middleware.Responder {

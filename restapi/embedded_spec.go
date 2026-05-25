@@ -49,7 +49,7 @@ func init() {
           "200": {
             "description": "List of documents",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentsListResponse"
             }
           },
           "401": {
@@ -92,7 +92,7 @@ func init() {
           "201": {
             "description": "Created",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentCreatedResponse"
             }
           },
           "400": {
@@ -135,7 +135,7 @@ func init() {
           "200": {
             "description": "Document details",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentResponse"
             }
           },
           "401": {
@@ -220,9 +220,9 @@ func init() {
         "summary": "Get current user profile",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Profile details",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/UserProfileResponse"
             }
           },
           "401": {
@@ -250,6 +250,7 @@ func init() {
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
@@ -362,6 +363,103 @@ func init() {
         }
       }
     },
+    "Document": {
+      "type": "object",
+      "required": [
+        "id",
+        "user_id",
+        "filename",
+        "status",
+        "created_at"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "status": {
+          "type": "string",
+          "example": "uploaded"
+        },
+        "user_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "DocumentCreatedResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "document"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Document uploaded and queued for processing"
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "DocumentResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "document"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Document fetched successfully"
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "DocumentsListResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "documents"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Documents fetched successfully"
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Document"
+          }
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
     "ErrorResponse": {
       "type": "object",
       "required": [
@@ -408,6 +506,58 @@ func init() {
         },
         "token": {
           "type": "string"
+        }
+      }
+    },
+    "UserProfile": {
+      "type": "object",
+      "required": [
+        "id",
+        "email",
+        "created_at"
+      ],
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dob": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "UserProfileResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "user"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Profile fetched successfully"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "user": {
+          "$ref": "#/definitions/UserProfile"
         }
       }
     }
@@ -453,7 +603,7 @@ func init() {
           "200": {
             "description": "List of documents",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentsListResponse"
             }
           },
           "401": {
@@ -496,7 +646,7 @@ func init() {
           "201": {
             "description": "Created",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentCreatedResponse"
             }
           },
           "400": {
@@ -539,7 +689,7 @@ func init() {
           "200": {
             "description": "Document details",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/DocumentResponse"
             }
           },
           "401": {
@@ -624,9 +774,9 @@ func init() {
         "summary": "Get current user profile",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Profile details",
             "schema": {
-              "$ref": "#/definitions/AckResponse"
+              "$ref": "#/definitions/UserProfileResponse"
             }
           },
           "401": {
@@ -654,6 +804,7 @@ func init() {
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
@@ -766,6 +917,103 @@ func init() {
         }
       }
     },
+    "Document": {
+      "type": "object",
+      "required": [
+        "id",
+        "user_id",
+        "filename",
+        "status",
+        "created_at"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "status": {
+          "type": "string",
+          "example": "uploaded"
+        },
+        "user_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "DocumentCreatedResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "document"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Document uploaded and queued for processing"
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "DocumentResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "document"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Document fetched successfully"
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "DocumentsListResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "documents"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Documents fetched successfully"
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Document"
+          }
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
     "ErrorResponse": {
       "type": "object",
       "required": [
@@ -812,6 +1060,58 @@ func init() {
         },
         "token": {
           "type": "string"
+        }
+      }
+    },
+    "UserProfile": {
+      "type": "object",
+      "required": [
+        "id",
+        "email",
+        "created_at"
+      ],
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dob": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "UserProfileResponse": {
+      "type": "object",
+      "required": [
+        "success",
+        "acknowledgement",
+        "user"
+      ],
+      "properties": {
+        "acknowledgement": {
+          "type": "string",
+          "example": "Profile fetched successfully"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "user": {
+          "$ref": "#/definitions/UserProfile"
         }
       }
     }
