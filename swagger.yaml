@@ -77,9 +77,9 @@ paths:
         - Bearer: []
       responses:
         200:
-          description: OK
+          description: Profile details
           schema:
-            $ref: '#/definitions/AckResponse'
+            $ref: '#/definitions/UserProfileResponse'
         401:
           description: Unauthorized
           schema:
@@ -93,6 +93,7 @@ paths:
       parameters:
         - in: body
           name: body
+          required: true
           schema:
             type: object
             properties:
@@ -175,7 +176,7 @@ paths:
         200:
           description: Document details
           schema:
-            $ref: '#/definitions/AckResponse'
+            $ref: '#/definitions/DocumentResponse'
         404:
           description: Not found
           schema:
@@ -218,6 +219,19 @@ definitions:
       document:
         $ref: '#/definitions/Document'
 
+  DocumentResponse:
+    type: object
+    required: [success, acknowledgement, document]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Document fetched successfully
+      document:
+        $ref: '#/definitions/Document'
+
   DocumentsListResponse:
     type: object
     required: [success, acknowledgement, documents]
@@ -256,6 +270,39 @@ definitions:
         example: Login successful
       token:
         type: string
+
+  UserProfile:
+    type: object
+    required: [id, email, created_at]
+    properties:
+      id:
+        type: integer
+        format: int64
+      email:
+        type: string
+        format: email
+      name:
+        type: string
+      dob:
+        type: string
+      address:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+
+  UserProfileResponse:
+    type: object
+    required: [success, acknowledgement, user]
+    properties:
+      success:
+        type: boolean
+        example: true
+      acknowledgement:
+        type: string
+        example: Profile fetched successfully
+      user:
+        $ref: '#/definitions/UserProfile'
 
   ErrorResponse:
     type: object

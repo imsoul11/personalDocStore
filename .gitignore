@@ -17,6 +17,8 @@
 
 # Go workspace
 go.work
+.gocache/
+.gomodcache/
 
 # IDE / editor
 .idea/

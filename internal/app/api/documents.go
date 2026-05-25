@@ -63,22 +63,9 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 	ack := "Documents fetched successfully"
 	respDocs := make([]*swgmodels.Document, 0, len(docs))
 	for _, doc := range docs {
-		if doc == nil {
-			continue
+		if swaggerDoc := swaggerDocumentFromModel(doc); swaggerDoc != nil {
+			respDocs = append(respDocs, swaggerDoc)
 		}
-		id := doc.ID
-		uid := doc.UserID
-		filename := doc.Filename
-		status := doc.Status
-		created := strfmt.DateTime(doc.CreatedAt)
-
-		respDocs = append(respDocs, &swgmodels.Document{
-			ID:        &id,
-			UserID:    &uid,
-			Filename:  &filename,
-			Status:    &status,
-			CreatedAt: &created,
-		})
 	}
 
 	return operations.NewGetDocumentsOK().WithPayload(&swgmodels.DocumentsListResponse{
@@ -88,9 +75,41 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 	})
 }
 
+func (d *DocIMPL) GetDocumentsID(ctx context.Context, params operations.GetDocumentsIDParams, principal interface{}) middleware.Responder {
+	log := pkglog.Logger()
+	if d.store == nil {
+		log.Error().Str("op", "get_documents_id").Msg("store not initialized")
+		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
+			rw.WriteHeader(http.StatusInternalServerError)
+		})
+	}
+
+	userID, ok := principal.(int64)
+	if !ok || principal == nil {
+		log.Warn().Str("op", "get_documents_id").Msg("unauthorized request")
+		return operations.NewGetDocumentsIDUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
+	}
+
+	doc, err := d.store.GetDocumentByID(ctx, params.ID)
+	if err != nil {
+		log.Error().Str("op", "get_documents_id").Int64("user_id", userID).Int64("document_id", params.ID).Err(err).Msg("failed to fetch document")
+		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
+			rw.WriteHeader(http.StatusInternalServerError)
+		})
+	}
+
+	if doc == nil || doc.UserID != userID {
+		log.Warn().Str("op", "get_documents_id").Int64("user_id", userID).Int64("document_id", params.ID).Msg("document not found for user")
+		return operations.NewGetDocumentsIDNotFound().WithPayload(errorPayload(http.StatusNotFound, "Document not found"))
+	}
+
+	log.Info().Str("op", "get_documents_id").Int64("user_id", userID).Int64("document_id", params.ID).Msg("document fetched")
+	return operations.NewGetDocumentsIDOK().WithPayload(documentResponsePayload("Document fetched successfully", doc))
+}
+
 func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocumentsParams, principal interface{}) middleware.Responder {
 	log := pkglog.Logger()
-	
+
 	userID, ok := principal.(int64)
 	if !ok || principal == nil {
 		log.Warn().Str("op", "post_documents").Msg("unauthorized request")
@@ -150,7 +169,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	doc := &intmodels.Document{
 		UserID:    userID,
 		Filename:  storedName,
-		Status:    "uploaded",
+		Status:    intmodels.StatusUploaded,
 		CreatedAt: time.Now(),
 	}
 	if err := d.store.CreateDocument(ctx, doc); err != nil {
@@ -171,21 +190,40 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 
 	success := true
 	ack := "Document uploaded and queued for processing"
-	id := doc.ID
-	uid := doc.UserID
-	filenameResp := doc.Filename
-	statusResp := doc.Status
-	created := strfmt.DateTime(doc.CreatedAt)
 
 	return operations.NewPostDocumentsCreated().WithPayload(&swgmodels.DocumentCreatedResponse{
 		Success:         &success,
 		Acknowledgement: &ack,
-		Document: &swgmodels.Document{
-			ID:        &id,
-			UserID:    &uid,
-			Filename:  &filenameResp,
-			Status:    &statusResp,
-			CreatedAt: &created,
-		},
+		Document:        swaggerDocumentFromModel(doc),
 	})
+}
+
+func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {
+	if doc == nil {
+		return nil
+	}
+
+	id := doc.ID
+	uid := doc.UserID
+	filename := doc.Filename
+	status := doc.Status
+	created := strfmt.DateTime(doc.CreatedAt)
+
+	return &swgmodels.Document{
+		ID:        &id,
+		UserID:    &uid,
+		Filename:  &filename,
+		Status:    &status,
+		CreatedAt: &created,
+	}
+}
+
+func documentResponsePayload(message string, doc *intmodels.Document) *swgmodels.DocumentResponse {
+	success := true
+	ack := message
+	return &swgmodels.DocumentResponse{
+		Success:         &success,
+		Acknowledgement: &ack,
+		Document:        swaggerDocumentFromModel(doc),
+	}
 }
