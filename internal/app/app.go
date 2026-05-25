@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	appapi "github.com/imsoul11/personalDocStore/internal/app/api"
 	"github.com/imsoul11/personalDocStore/internal/pkg/config"
@@ -25,7 +26,7 @@ func JWTSecret() string {
 // Must be called before the swagger server starts handling requests
 // (i.e. from configureAPI in restapi/configure_docstore.go).
 // Config path is read from CONFIG_PATH env var; defaults to "configs/config.json".
-// JWT secret is read from JWT_SECRET env var; defaults to "changeme".
+// JWT secret is read from JWT_SECRET env var and must be set.
 func Init() {
 	if appapi.Cfg != nil {
 		pkglog.Logger().Debug().Str("op", "app_init").Msg("app config already initialized")
@@ -37,18 +38,18 @@ func Init() {
 		configPath = "configs/config.json"
 	}
 
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = "caskjdbaiudhhiadiasahiassdiuashdisaundasjn"
-	}
-	jwtSecretValue = jwtSecret
-
 	cfg, err := config.Load(configPath)
 	if err != nil {
 		log.Fatalf("app.Init: config load failed: %v", err)
 	}
 	pkglog.New(cfg.Log.Level)
 	pkglog.Logger().Info().Str("op", "app_init").Str("config_path", configPath).Msg("config loaded")
+
+	jwtSecret := strings.TrimSpace(os.Getenv("JWT_SECRET"))
+	if jwtSecret == "" {
+		log.Fatal("app.Init: JWT_SECRET env var must be set")
+	}
+	jwtSecretValue = jwtSecret
 
 	dbInstance, err := db.New(cfg.Database)
 	if err != nil {

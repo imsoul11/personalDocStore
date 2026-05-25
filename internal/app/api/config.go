@@ -10,6 +10,7 @@ import (
 // DocumentsAPI is the interface for document operations.
 type DocumentsAPI interface {
 	GetDocuments(ctx context.Context, params operations.GetDocumentsParams, principal interface{}) middleware.Responder
+	GetDocumentsID(ctx context.Context, params operations.GetDocumentsIDParams, principal interface{}) middleware.Responder
 	PostDocuments(ctx context.Context, params operations.PostDocumentsParams, principal interface{}) middleware.Responder
 }
 
@@ -28,4 +29,3 @@ type Config struct {
 }
 
 var Cfg *Config
-
