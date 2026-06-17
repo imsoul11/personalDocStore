@@ -1,6 +1,8 @@
 package api
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -35,5 +37,28 @@ func TestSwaggerDocumentFromModel(t *testing.T) {
 	}
 	if payload.CreatedAt == nil || !time.Time(*payload.CreatedAt).Equal(createdAt) {
 		t.Fatalf("expected created_at %s", createdAt.Format(time.RFC3339))
+	}
+}
+
+func TestCleanupUploadedFileRemovesFile(t *testing.T) {
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "upload.txt")
+	if err := os.WriteFile(filePath, []byte("content"), 0644); err != nil {
+		t.Fatalf("write temp file: %v", err)
+	}
+
+	if err := cleanupUploadedFile(filePath); err != nil {
+		t.Fatalf("cleanupUploadedFile returned error: %v", err)
+	}
+
+	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
+		t.Fatalf("expected file to be removed, stat err = %v", err)
+	}
+}
+
+func TestCleanupUploadedFileIgnoresMissingFile(t *testing.T) {
+	filePath := filepath.Join(t.TempDir(), "missing.txt")
+	if err := cleanupUploadedFile(filePath); err != nil {
+		t.Fatalf("expected missing file cleanup to succeed, got %v", err)
 	}
 }

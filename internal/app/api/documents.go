@@ -165,6 +165,14 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 
 	log.Info().Str("op", "post_documents").Str("path", filePath).Msg("file saved to disk")
 
+	cleanupFile := func(reason string) {
+		if err := cleanupUploadedFile(filePath); err != nil {
+			log.Error().Err(err).Str("path", filePath).Msg("failed to clean up uploaded file after " + reason)
+			return
+		}
+		log.Warn().Str("op", "post_documents").Str("path", filePath).Msg("cleaned up uploaded file after " + reason)
+	}
+
 	// Save document metadata to database
 	doc := &intmodels.Document{
 		UserID:    userID,
@@ -174,6 +182,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	}
 	if err := d.store.CreateDocument(ctx, doc); err != nil {
 		log.Error().Err(err).Msg("failed to save document metadata")
+		cleanupFile("database failure")
 		return operations.NewPostDocumentsBadRequest()
 	}
 
@@ -183,6 +192,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	err = d.broker.EnqueueTask("process_document", fmt.Sprint(doc.ID), filePath)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to enqueue task")
+		cleanupFile("queue failure")
 		return operations.NewPostDocumentsBadRequest()
 	}
 
@@ -196,6 +206,16 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 		Acknowledgement: &ack,
 		Document:        swaggerDocumentFromModel(doc),
 	})
+}
+
+func cleanupUploadedFile(filePath string) error {
+	if err := os.Remove(filePath); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {
