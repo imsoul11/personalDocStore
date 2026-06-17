@@ -64,3 +64,16 @@ func (pgstr *PGStore) UpdateDocumentStatus(ctx context.Context, id int64, status
 	return nil
 }
 
+func (pgstr *PGStore) DeleteDocumentByID(ctx context.Context, id int64) error {
+	log := pkglog.Logger()
+	log.Debug().Str("op", "store_delete_document_by_id").Int64("document_id", id).Msg("deleting document by id")
+	_, err := pgstr.db.ModelContext(ctx, (*models.Document)(nil)).
+		Where("id = ?", id).
+		Delete()
+	if err != nil {
+		log.Error().Str("op", "store_delete_document_by_id").Int64("document_id", id).Err(err).Msg("delete document failed")
+		return err
+	}
+	log.Debug().Str("op", "store_delete_document_by_id").Int64("document_id", id).Msg("document deleted")
+	return nil
+}

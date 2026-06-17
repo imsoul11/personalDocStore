@@ -192,6 +192,9 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	err = d.broker.EnqueueTask("process_document", fmt.Sprint(doc.ID), filePath)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to enqueue task")
+		if deleteErr := d.store.DeleteDocumentByID(ctx, doc.ID); deleteErr != nil {
+			log.Error().Err(deleteErr).Int64("document_id", doc.ID).Msg("failed to roll back document metadata after queue failure")
+		}
 		cleanupFile("queue failure")
 		return operations.NewPostDocumentsBadRequest()
 	}
