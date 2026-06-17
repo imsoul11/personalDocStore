@@ -2,12 +2,14 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
@@ -118,22 +120,7 @@ func (u *UsersIMPL) GetUsersProfile(ctx context.Context, params operations.GetUs
 	}
 	_ = params
 	log.Info().Str("op", "get_users_profile").Int64("user_id", userID).Msg("user profile fetched")
-	return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
-		rw.Header().Set("Content-Type", "application/json")
-		rw.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(rw).Encode(map[string]interface{}{
-			"success":         true,
-			"acknowledgement": "Profile fetched successfully",
-			"user": map[string]interface{}{
-				"id":         user.ID,
-				"email":      user.Email,
-				"name":       user.Name,
-				"dob":        user.Dob,
-				"address":    user.Address,
-				"created_at": user.CreatedAt,
-			},
-		})
-	})
+	return operations.NewGetUsersProfileOK().WithPayload(userProfileResponsePayload("Profile fetched successfully", user))
 }
 
 func (u *UsersIMPL) PostUsersProfile(ctx context.Context, params operations.PostUsersProfileParams, principal interface{}) middleware.Responder {
@@ -143,35 +130,34 @@ func (u *UsersIMPL) PostUsersProfile(ctx context.Context, params operations.Post
 		log.Warn().Str("op", "post_users_profile").Msg("unauthorized profile update")
 		return operations.NewPostUsersProfileUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
 	}
-	dob := params.Body.Dob
-	name := params.Body.Name
-	addr := params.Body.Address
-	oldUser, err := u.store.GetUserByID(ctx,userID)
-    if err!=nil{
-		log.Error().Str("op", "post_users_Profile").Err(err).Msg("failed to get User")
+
+	oldUser, err := u.store.GetUserByID(ctx, userID)
+	if err != nil {
+		log.Error().Str("op", "post_users_profile").Int64("user_id", userID).Err(err).Msg("failed to get user")
 		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
 			rw.WriteHeader(http.StatusInternalServerError)
 		})
 	}
-	newUser := oldUser
-	newUser.Name = name
-	newUser.Dob = dob.String()
-	newUser.Address = addr
-	err = u.store.UpdateUser(ctx,newUser)
-	
-	if err!=nil{
-		log.Error().Str("op", "post_users_Profile").Err(err).Msg("failed to update User")
+	if oldUser == nil {
+		log.Warn().Str("op", "post_users_profile").Int64("user_id", userID).Msg("user not found for profile update")
+		return operations.NewPostUsersProfileUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
+	}
+
+	updatedUser, changed := applyUserProfileUpdate(oldUser, params.Body)
+	if !changed {
+		log.Warn().Str("op", "post_users_profile").Int64("user_id", userID).Msg("profile update request contained no fields")
+		return operations.NewPostUsersProfileBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "At least one profile field must be provided"))
+	}
+
+	if err := u.store.UpdateUser(ctx, updatedUser); err != nil {
+		log.Error().Str("op", "post_users_profile").Int64("user_id", userID).Err(err).Msg("failed to update user")
 		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
 			rw.WriteHeader(http.StatusInternalServerError)
 		})
 	}
-	log.Info().Str("op", "post_users_profile").Int64("user_id", userID).Msg("profile update endpoint called (not fully implemented)")
-	success := true
-	ack := "Updated User ack"
-	return operations.NewPostUsersProfileOK().WithPayload(&swgm.AckResponse{
-        Success:         &success,
-        Acknowledgement: &ack,
-    })
+
+	log.Info().Str("op", "post_users_profile").Int64("user_id", userID).Msg("profile updated")
+	return operations.NewPostUsersProfileOK().WithPayload(ackPayload("Profile updated successfully"))
 }
 
 func ackPayload(message string) *swgm.AckResponse {
@@ -193,5 +179,50 @@ func errorPayload(code int, message string) *swgm.ErrorResponse {
 		Acknowledgement: &ack,
 		Code:            &errCode,
 		Message:         &msg,
+	}
+}
+
+// Treat empty strings as omitted so partial updates do not wipe existing fields.
+func applyUserProfileUpdate(user *models.User, body operations.PostUsersProfileBody) (*models.User, bool) {
+	updated := *user
+	changed := false
+
+	if name := strings.TrimSpace(body.Name); name != "" && name != user.Name {
+		updated.Name = name
+		changed = true
+	}
+	if address := strings.TrimSpace(body.Address); address != "" && address != user.Address {
+		updated.Address = address
+		changed = true
+	}
+	if !swag.IsZero(body.Dob) {
+		dob := strings.TrimSpace(body.Dob.String())
+		if dob != "" && dob != user.Dob {
+			updated.Dob = dob
+			changed = true
+		}
+	}
+
+	return &updated, changed
+}
+
+func userProfileResponsePayload(message string, user *models.User) *swgm.UserProfileResponse {
+	success := true
+	ack := message
+	id := user.ID
+	email := strfmt.Email(user.Email)
+	createdAt := strfmt.DateTime(user.CreatedAt)
+
+	return &swgm.UserProfileResponse{
+		Success:         &success,
+		Acknowledgement: &ack,
+		User: &swgm.UserProfile{
+			ID:        &id,
+			Email:     &email,
+			Name:      user.Name,
+			Dob:       user.Dob,
+			Address:   user.Address,
+			CreatedAt: &createdAt,
+		},
 	}
 }

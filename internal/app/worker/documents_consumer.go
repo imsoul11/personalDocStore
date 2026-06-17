@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/imsoul11/personalDocStore/internal/pkg/log"
+	"github.com/imsoul11/personalDocStore/internal/pkg/models"
 	"github.com/imsoul11/personalDocStore/internal/pkg/persistence"
 )
 
@@ -41,8 +42,17 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 		return fmt.Errorf("invalid document id: %w", err)
 	}
 
+	failDocument := func(cause error, message string) error {
+		if c.store != nil {
+			if statusErr := c.store.UpdateDocumentStatus(context.Background(), docID, models.StatusFailed); statusErr != nil {
+				log.Logger().Error().Err(statusErr).Int64("document_id", docID).Msg("failed to set document status to failed")
+			}
+		}
+		return fmt.Errorf("%s: %w", message, cause)
+	}
+
 	if c.store != nil {
-		if err := c.store.UpdateDocumentStatus(context.Background(), docID, "processing"); err != nil {
+		if err := c.store.UpdateDocumentStatus(context.Background(), docID, models.StatusProcessing); err != nil {
 			log.Logger().Error().Err(err).Int64("document_id", docID).Msg("failed to set document status to processing")
 		}
 	}
@@ -50,7 +60,7 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		log.Logger().Error().Err(err).Str("file_path", filePath).Msg("file not found")
-		return fmt.Errorf("file not found: %w", err)
+		return failDocument(err, "file not found")
 	}
 
 	fileSize := fileInfo.Size()
@@ -62,7 +72,7 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Logger().Error().Err(err).Str("file_path", filePath).Msg("failed to read file")
-		return fmt.Errorf("failed to read file: %w", err)
+		return failDocument(err, "failed to read file")
 	}
 
 	ext := strings.ToLower(filepath.Ext(filePath))
@@ -95,7 +105,7 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 	}
 	if err := os.MkdirAll(processedDir, 0755); err != nil {
 		log.Logger().Error().Err(err).Msg("failed to create processed directory")
-		return fmt.Errorf("failed to create processed directory: %w", err)
+		return failDocument(err, "failed to create processed directory")
 	}
 
 	filename := filepath.Base(filePath)
@@ -103,12 +113,12 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 
 	if err := os.Rename(filePath, processedPath); err != nil {
 		log.Logger().Error().Err(err).Msg("failed to move file to processed")
-		return fmt.Errorf("failed to move file: %w", err)
+		return failDocument(err, "failed to move file")
 	}
 
 	if c.store != nil {
-		if err := c.store.UpdateDocumentStatus(context.Background(), docID, "processed"); err != nil {
-			log.Logger().Error().Err(err).Int64("document_id", docID).Msg("failed to set document status to processed")
+		if err := c.store.UpdateDocumentStatus(context.Background(), docID, models.StatusCompleted); err != nil {
+			log.Logger().Error().Err(err).Int64("document_id", docID).Msg("failed to set document status to completed")
 		}
 	}
 

@@ -26,7 +26,7 @@ type GetDocumentsIDOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.AckResponse `json:"body,omitempty"`
+	Payload *models.DocumentResponse `json:"body,omitempty"`
 }
 
 // NewGetDocumentsIDOK creates GetDocumentsIDOK with default headers values
@@ -36,13 +36,13 @@ func NewGetDocumentsIDOK() *GetDocumentsIDOK {
 }
 
 // WithPayload adds the payload to the get documents Id o k response
-func (o *GetDocumentsIDOK) WithPayload(payload *models.AckResponse) *GetDocumentsIDOK {
+func (o *GetDocumentsIDOK) WithPayload(payload *models.DocumentResponse) *GetDocumentsIDOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get documents Id o k response
-func (o *GetDocumentsIDOK) SetPayload(payload *models.AckResponse) {
+func (o *GetDocumentsIDOK) SetPayload(payload *models.DocumentResponse) {
 	o.Payload = payload
 }
 

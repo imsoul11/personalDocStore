@@ -17,7 +17,7 @@ import (
 const GetUsersProfileOKCode int = 200
 
 /*
-GetUsersProfileOK OK
+GetUsersProfileOK Profile details
 
 swagger:response getUsersProfileOK
 */
@@ -26,7 +26,7 @@ type GetUsersProfileOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.AckResponse `json:"body,omitempty"`
+	Payload *models.UserProfileResponse `json:"body,omitempty"`
 }
 
 // NewGetUsersProfileOK creates GetUsersProfileOK with default headers values
@@ -36,13 +36,13 @@ func NewGetUsersProfileOK() *GetUsersProfileOK {
 }
 
 // WithPayload adds the payload to the get users profile o k response
-func (o *GetUsersProfileOK) WithPayload(payload *models.AckResponse) *GetUsersProfileOK {
+func (o *GetUsersProfileOK) WithPayload(payload *models.UserProfileResponse) *GetUsersProfileOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get users profile o k response
-func (o *GetUsersProfileOK) SetPayload(payload *models.AckResponse) {
+func (o *GetUsersProfileOK) SetPayload(payload *models.UserProfileResponse) {
 	o.Payload = payload
 }
 
