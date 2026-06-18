@@ -23,7 +23,7 @@ type DocumentsConsumer struct {
 func NewDocumentsConsumer(store *persistence.PGStore, processedDir string, delay time.Duration) *DocumentsConsumer {
 	return &DocumentsConsumer{
 		store:        store,
-		ProcessedDir: processedDir,
+		ProcessedDir: resolveProcessedDir(processedDir),
 		Delay:        delay,
 	}
 }
@@ -100,9 +100,6 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 	}
 
 	processedDir := c.ProcessedDir
-	if processedDir == "" {
-		processedDir = "./storage/processed"
-	}
 	if err := os.MkdirAll(processedDir, 0755); err != nil {
 		log.Logger().Error().Err(err).Msg("failed to create processed directory")
 		return failDocument(err, "failed to create processed directory")
@@ -130,4 +127,12 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 		Msg("document processing completed successfully")
 
 	return nil
+}
+
+func resolveProcessedDir(processedDir string) string {
+	processedDir = strings.TrimSpace(processedDir)
+	if processedDir == "" {
+		return "./storage/processed"
+	}
+	return processedDir
 }
