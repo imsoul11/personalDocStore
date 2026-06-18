@@ -32,14 +32,16 @@ var supportedUploadExtensions = map[string]struct{}{
 }
 
 type DocIMPL struct {
-	store  *persistence.PGStore
-	broker rabbitmq.Broker
+	store     *persistence.PGStore
+	broker    rabbitmq.Broker
+	uploadDir string
 }
 
-func NewDocuments(store *persistence.PGStore, broker rabbitmq.Broker) *DocIMPL {
+func NewDocuments(store *persistence.PGStore, broker rabbitmq.Broker, uploadDir string) *DocIMPL {
 	return &DocIMPL{
-		store:  store,
-		broker: broker,
+		store:     store,
+		broker:    broker,
+		uploadDir: resolveUploadDir(uploadDir),
 	}
 }
 
@@ -157,7 +159,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	log.Info().Str("op", "post_documents").Int64("user_id", userID).Str("filename", storedName).Msg("document upload request")
 
 	// Create upload directory if it doesn't exist
-	uploadDir := "./storage/uploads"
+	uploadDir := d.uploadDir
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		log.Error().Err(err).Msg("failed to create upload directory")
 		return operations.NewPostDocumentsBadRequest()
@@ -234,6 +236,14 @@ func cleanupUploadedFile(filePath string) error {
 		return err
 	}
 	return nil
+}
+
+func resolveUploadDir(uploadDir string) string {
+	uploadDir = strings.TrimSpace(uploadDir)
+	if uploadDir == "" {
+		return "./storage/uploads"
+	}
+	return uploadDir
 }
 
 func isSupportedUpload(filename string) bool {

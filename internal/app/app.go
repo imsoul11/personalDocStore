@@ -64,7 +64,7 @@ func Init() {
 	store := persistence.New(dbInstance)
 
 	appapi.Cfg = &appapi.Config{
-		DocumentsAPI: appapi.NewDocuments(store, broker),
+		DocumentsAPI: appapi.NewDocuments(store, broker, cfg.Storage.UploadPath),
 		UsersAPI:     appapi.NewUsers(store, jwtSecret),
 	}
 	pkglog.Logger().Info().Str("op", "app_init").Msg("application APIs wired")

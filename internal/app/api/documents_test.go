@@ -82,3 +82,21 @@ func TestIsSupportedUpload(t *testing.T) {
 		}
 	}
 }
+
+func TestResolveUploadDir(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "configured path", in: "/tmp/uploads", want: "/tmp/uploads"},
+		{name: "trim whitespace", in: "  ./custom/uploads  ", want: "./custom/uploads"},
+		{name: "default path", in: "", want: "./storage/uploads"},
+	}
+
+	for _, tt := range tests {
+		if got := resolveUploadDir(tt.in); got != tt.want {
+			t.Fatalf("%s: expected %q, got %q", tt.name, tt.want, got)
+		}
+	}
+}
