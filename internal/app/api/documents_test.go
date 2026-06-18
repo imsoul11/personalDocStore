@@ -63,7 +63,7 @@ func TestCleanupUploadedFileIgnoresMissingFile(t *testing.T) {
 	}
 }
 
-func TestIsSupportedUpload(t *testing.T) {
+func TestIsSupportedDocument(t *testing.T) {
 	tests := []struct {
 		name     string
 		filename string
@@ -77,7 +77,7 @@ func TestIsSupportedUpload(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := isSupportedUpload(tt.filename); got != tt.want {
+		if got := intmodels.IsSupportedDocument(tt.filename); got != tt.want {
 			t.Fatalf("%s: expected %v, got %v", tt.name, tt.want, got)
 		}
 	}

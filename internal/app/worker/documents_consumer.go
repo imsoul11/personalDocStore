@@ -82,15 +82,7 @@ func (c *DocumentsConsumer) ProcessDocument(documentID string, filePath string) 
 		Int("content_length", len(content)).
 		Msg("file read successfully")
 
-	supportedTypes := []string{".pdf", ".txt", ".doc", ".docx", ".jpg", ".jpeg", ".png"}
-	isSupported := false
-	for _, supportedExt := range supportedTypes {
-		if ext == supportedExt {
-			isSupported = true
-			break
-		}
-	}
-	if !isSupported {
+	if !models.IsSupportedDocument(filePath) {
 		log.Logger().Warn().Str("extension", ext).Msg("unsupported file type")
 	}
 
