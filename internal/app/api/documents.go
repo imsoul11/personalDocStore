@@ -21,6 +21,16 @@ import (
 	"github.com/imsoul11/personalDocStore/restapi/operations"
 )
 
+var supportedUploadExtensions = map[string]struct{}{
+	".pdf":  {},
+	".txt":  {},
+	".doc":  {},
+	".docx": {},
+	".jpg":  {},
+	".jpeg": {},
+	".png":  {},
+}
+
 type DocIMPL struct {
 	store  *persistence.PGStore
 	broker rabbitmq.Broker
@@ -136,6 +146,11 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	filename = filepath.Base(filename)
 	filename = strings.ReplaceAll(filename, string(os.PathSeparator), "_")
 
+	if !isSupportedUpload(filename) {
+		log.Warn().Str("op", "post_documents").Str("filename", filename).Msg("unsupported upload extension")
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unsupported file type"))
+	}
+
 	// Prefix with user+timestamp to avoid collisions/overwrites
 	storedName := fmt.Sprintf("%d_%d_%s", userID, time.Now().UnixNano(), filename)
 
@@ -219,6 +234,12 @@ func cleanupUploadedFile(filePath string) error {
 		return err
 	}
 	return nil
+}
+
+func isSupportedUpload(filename string) bool {
+	ext := strings.ToLower(strings.TrimSpace(filepath.Ext(filename)))
+	_, ok := supportedUploadExtensions[ext]
+	return ok
 }
 
 func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {

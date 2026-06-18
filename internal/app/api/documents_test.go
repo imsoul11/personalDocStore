@@ -62,3 +62,23 @@ func TestCleanupUploadedFileIgnoresMissingFile(t *testing.T) {
 		t.Fatalf("expected missing file cleanup to succeed, got %v", err)
 	}
 }
+
+func TestIsSupportedUpload(t *testing.T) {
+	tests := []struct {
+		name     string
+		filename string
+		want     bool
+	}{
+		{name: "pdf", filename: "report.pdf", want: true},
+		{name: "uppercase extension", filename: "scan.JPG", want: true},
+		{name: "docx", filename: "notes.docx", want: true},
+		{name: "missing extension", filename: "upload", want: false},
+		{name: "unsupported extension", filename: "archive.zip", want: false},
+	}
+
+	for _, tt := range tests {
+		if got := isSupportedUpload(tt.filename); got != tt.want {
+			t.Fatalf("%s: expected %v, got %v", tt.name, tt.want, got)
+		}
+	}
+}
