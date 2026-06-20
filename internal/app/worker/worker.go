@@ -24,6 +24,13 @@ type Worker struct {
 	documents *DocumentsConsumer
 }
 
+func ResolveProcessingDelay(seconds int) time.Duration {
+	if seconds <= 0 {
+		seconds = 10
+	}
+	return time.Duration(seconds) * time.Second
+}
+
 func New(broker rabbitmq.Broker, store *persistence.PGStore, cfg Config) *Worker {
 	return &Worker{
 		broker: broker,

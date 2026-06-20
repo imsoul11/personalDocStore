@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/imsoul11/personalDocStore/internal/app/worker"
 	"github.com/imsoul11/personalDocStore/internal/pkg/config"
@@ -56,7 +55,7 @@ func main() {
 		WorkerName:      "docstore_worker",
 		Concurrency:     5,
 		ProcessedDir:    cfg.Storage.ProcessedPath,
-		ProcessingDelay: 10 * time.Second,
+		ProcessingDelay: worker.ResolveProcessingDelay(cfg.Worker.ProcessingDelaySeconds),
 	})
 
 	err = w.Start(ctx)

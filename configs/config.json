@@ -10,6 +10,9 @@
   "rabbitmq": {
     "url": "amqp://guest:guest@localhost:5672/"
   },
+  "worker": {
+    "processing_delay_seconds": 10
+  },
   "storage": {
     "upload_path": "./storage/uploads",
     "processed_path": "./storage/processed"
