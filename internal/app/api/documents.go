@@ -47,7 +47,7 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 	userID, ok := principal.(int64)
 	if !ok || principal == nil {
 		log.Warn().Str("op", "get_documents").Msg("unauthorized request")
-		return operations.NewGetDocumentsUnauthorized()
+		return operations.NewGetDocumentsUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
 	}
 	log.Info().Str("op", "get_documents").Int64("user_id", userID).Msg("fetching user documents")
 	docs, err := d.store.GetDocumentByUserID(ctx, userID)
@@ -115,7 +115,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	userID, ok := principal.(int64)
 	if !ok || principal == nil {
 		log.Warn().Str("op", "post_documents").Msg("unauthorized request")
-		return operations.NewPostDocumentsUnauthorized()
+		return operations.NewPostDocumentsUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
 	}
 
 	filename := ""
@@ -152,7 +152,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	uploadDir := d.uploadDir
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		log.Error().Err(err).Msg("failed to create upload directory")
-		return operations.NewPostDocumentsBadRequest()
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to prepare upload storage"))
 	}
 
 	// Save file to disk
@@ -160,14 +160,14 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	outFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		log.Error().Err(err).Str("path", filePath).Msg("failed to create file")
-		return operations.NewPostDocumentsBadRequest()
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to create upload file"))
 	}
 	defer outFile.Close()
 
 	_, err = io.Copy(outFile, params.File)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to save file")
-		return operations.NewPostDocumentsBadRequest()
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to save uploaded file"))
 	}
 
 	log.Info().Str("op", "post_documents").Str("path", filePath).Msg("file saved to disk")
@@ -190,7 +190,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	if err := d.store.CreateDocument(ctx, doc); err != nil {
 		log.Error().Err(err).Msg("failed to save document metadata")
 		cleanupFile("database failure")
-		return operations.NewPostDocumentsBadRequest()
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to create document metadata"))
 	}
 
 	log.Info().Str("op", "post_documents").Int64("document_id", doc.ID).Msg("document metadata saved")
@@ -203,7 +203,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 			log.Error().Err(deleteErr).Int64("document_id", doc.ID).Msg("failed to roll back document metadata after queue failure")
 		}
 		cleanupFile("queue failure")
-		return operations.NewPostDocumentsBadRequest()
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to queue document processing"))
 	}
 
 	log.Info().Str("op", "post_documents").Int64("document_id", doc.ID).Str("filename", storedName).Msg("document processing task enqueued")

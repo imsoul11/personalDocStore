@@ -1,12 +1,16 @@
 package api
 
 import (
+	"context"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	intmodels "github.com/imsoul11/personalDocStore/internal/pkg/models"
+	"github.com/imsoul11/personalDocStore/internal/pkg/persistence"
+	"github.com/imsoul11/personalDocStore/restapi/operations"
 )
 
 func TestSwaggerDocumentFromModel(t *testing.T) {
@@ -98,5 +102,29 @@ func TestResolveUploadDir(t *testing.T) {
 		if got := resolveUploadDir(tt.in); got != tt.want {
 			t.Fatalf("%s: expected %q, got %q", tt.name, tt.want, got)
 		}
+	}
+}
+
+func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(&persistence.PGStore{}, nil, "")
+
+	resp, ok := api.GetDocuments(context.Background(), operations.GetDocumentsParams{}, nil).(*operations.GetDocumentsUnauthorized)
+	if !ok {
+		t.Fatalf("expected GetDocumentsUnauthorized response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusUnauthorized {
+		t.Fatalf("expected unauthorized error payload, got %#v", resp.Payload)
+	}
+}
+
+func TestPostDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "")
+
+	resp, ok := api.PostDocuments(context.Background(), operations.PostDocumentsParams{}, nil).(*operations.PostDocumentsUnauthorized)
+	if !ok {
+		t.Fatalf("expected PostDocumentsUnauthorized response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusUnauthorized {
+		t.Fatalf("expected unauthorized error payload, got %#v", resp.Payload)
 	}
 }
