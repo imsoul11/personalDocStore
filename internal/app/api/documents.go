@@ -123,12 +123,15 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 		filename = *params.Filename
 	}
 
-	// Close uploaded stream when we're done
-	if params.File != nil {
-		defer func() {
-			_ = params.File.Close()
-		}()
+	if params.File == nil {
+		log.Warn().Str("op", "post_documents").Msg("document upload missing file")
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "File is required"))
 	}
+
+	// Close uploaded stream when we're done
+	defer func() {
+		_ = params.File.Close()
+	}()
 
 	// Sanitize filename to avoid path traversal / separators
 	filename = strings.TrimSpace(filename)

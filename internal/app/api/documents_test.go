@@ -128,3 +128,18 @@ func TestPostDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 		t.Fatalf("expected unauthorized error payload, got %#v", resp.Payload)
 	}
 }
+
+func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "")
+
+	resp, ok := api.PostDocuments(context.Background(), operations.PostDocumentsParams{}, int64(7)).(*operations.PostDocumentsBadRequest)
+	if !ok {
+		t.Fatalf("expected PostDocumentsBadRequest response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusBadRequest {
+		t.Fatalf("expected bad request payload, got %#v", resp.Payload)
+	}
+	if resp.Payload.Message == nil || *resp.Payload.Message != "File is required" {
+		t.Fatalf("expected missing file message, got %#v", resp.Payload.Message)
+	}
+}
