@@ -40,9 +40,7 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 	log := pkglog.Logger()
 	if d.store == nil {
 		log.Error().Str("op", "get_documents").Msg("store not initialized")
-		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
-			rw.WriteHeader(http.StatusInternalServerError)
-		})
+		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Document storage is not configured"))
 	}
 	userID, ok := principal.(int64)
 	if !ok || principal == nil {
@@ -53,9 +51,7 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 	docs, err := d.store.GetDocumentByUserID(ctx, userID)
 	if err != nil {
 		log.Error().Str("op", "get_documents").Int64("user_id", userID).Err(err).Msg("failed to fetch documents")
-		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
-			rw.WriteHeader(http.StatusInternalServerError)
-		})
+		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to fetch documents"))
 	}
 	log.Info().Str("op", "get_documents").Int64("user_id", userID).Int("documents_count", len(docs)).Msg("documents fetched")
 
@@ -81,9 +77,7 @@ func (d *DocIMPL) GetDocumentsID(ctx context.Context, params operations.GetDocum
 	log := pkglog.Logger()
 	if d.store == nil {
 		log.Error().Str("op", "get_documents_id").Msg("store not initialized")
-		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
-			rw.WriteHeader(http.StatusInternalServerError)
-		})
+		return operations.NewGetDocumentsIDInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Document storage is not configured"))
 	}
 
 	userID, ok := principal.(int64)
@@ -95,9 +89,7 @@ func (d *DocIMPL) GetDocumentsID(ctx context.Context, params operations.GetDocum
 	doc, err := d.store.GetDocumentByID(ctx, params.ID)
 	if err != nil {
 		log.Error().Str("op", "get_documents_id").Int64("user_id", userID).Int64("document_id", params.ID).Err(err).Msg("failed to fetch document")
-		return middleware.ResponderFunc(func(rw http.ResponseWriter, _ runtime.Producer) {
-			rw.WriteHeader(http.StatusInternalServerError)
-		})
+		return operations.NewGetDocumentsIDInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to fetch document"))
 	}
 
 	if doc == nil || doc.UserID != userID {

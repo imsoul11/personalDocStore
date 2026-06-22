@@ -140,6 +140,18 @@ func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	}
 }
 
+func TestGetDocumentsStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "")
+
+	resp, ok := api.GetDocuments(context.Background(), operations.GetDocumentsParams{}, int64(7)).(*operations.GetDocumentsInternalServerError)
+	if !ok {
+		t.Fatalf("expected GetDocumentsInternalServerError response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusInternalServerError {
+		t.Fatalf("expected internal server error payload, got %#v", resp.Payload)
+	}
+}
+
 func TestPostDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	api := NewDocuments(nil, nil, "")
 
@@ -164,6 +176,18 @@ func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
 	}
 	if resp.Payload.Message == nil || *resp.Payload.Message != "File is required" {
 		t.Fatalf("expected missing file message, got %#v", resp.Payload.Message)
+	}
+}
+
+func TestGetDocumentsIDStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "")
+
+	resp, ok := api.GetDocumentsID(context.Background(), operations.GetDocumentsIDParams{}, int64(7)).(*operations.GetDocumentsIDInternalServerError)
+	if !ok {
+		t.Fatalf("expected GetDocumentsIDInternalServerError response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusInternalServerError {
+		t.Fatalf("expected internal server error payload, got %#v", resp.Payload)
 	}
 }
 

@@ -147,3 +147,48 @@ func (o *GetDocumentsIDNotFound) WriteResponse(rw http.ResponseWriter, producer 
 		}
 	}
 }
+
+// GetDocumentsIDInternalServerErrorCode is the HTTP code returned for type GetDocumentsIDInternalServerError
+const GetDocumentsIDInternalServerErrorCode int = 500
+
+/*
+GetDocumentsIDInternalServerError Internal server error
+
+swagger:response getDocumentsIdInternalServerError
+*/
+type GetDocumentsIDInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
+}
+
+// NewGetDocumentsIDInternalServerError creates GetDocumentsIDInternalServerError with default headers values
+func NewGetDocumentsIDInternalServerError() *GetDocumentsIDInternalServerError {
+
+	return &GetDocumentsIDInternalServerError{}
+}
+
+// WithPayload adds the payload to the get documents Id internal server error response
+func (o *GetDocumentsIDInternalServerError) WithPayload(payload *models.ErrorResponse) *GetDocumentsIDInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents Id internal server error response
+func (o *GetDocumentsIDInternalServerError) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetDocumentsIDInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
