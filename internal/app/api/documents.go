@@ -134,10 +134,7 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	}()
 
 	// Sanitize filename to avoid path traversal / separators
-	filename = strings.TrimSpace(filename)
-	if filename == "" {
-		filename = "upload"
-	}
+	filename = resolveUploadFilename(filename, params.File)
 	filename = filepath.Base(filename)
 	filename = strings.ReplaceAll(filename, string(os.PathSeparator), "_")
 
@@ -237,6 +234,20 @@ func resolveUploadDir(uploadDir string) string {
 		return "./storage/uploads"
 	}
 	return uploadDir
+}
+
+func resolveUploadFilename(filename string, file io.ReadCloser) string {
+	filename = strings.TrimSpace(filename)
+	if filename != "" {
+		return filename
+	}
+	if uploadedFile, ok := file.(*runtime.File); ok && uploadedFile.Header != nil {
+		headerFilename := strings.TrimSpace(uploadedFile.Header.Filename)
+		if headerFilename != "" {
+			return headerFilename
+		}
+	}
+	return "upload"
 }
 
 func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {

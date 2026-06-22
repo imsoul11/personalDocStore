@@ -2,12 +2,15 @@ package api
 
 import (
 	"context"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/go-openapi/runtime"
 	intmodels "github.com/imsoul11/personalDocStore/internal/pkg/models"
 	"github.com/imsoul11/personalDocStore/internal/pkg/persistence"
 	"github.com/imsoul11/personalDocStore/restapi/operations"
@@ -105,6 +108,26 @@ func TestResolveUploadDir(t *testing.T) {
 	}
 }
 
+func TestResolveUploadFilename(t *testing.T) {
+	tests := []struct {
+		name     string
+		filename string
+		file     io.ReadCloser
+		want     string
+	}{
+		{name: "explicit filename wins", filename: "manual.pdf", file: uploadedFile("header.docx"), want: "manual.pdf"},
+		{name: "header filename fallback", filename: "", file: uploadedFile("scan.jpg"), want: "scan.jpg"},
+		{name: "trim explicit filename", filename: "  notes.txt  ", file: uploadedFile("scan.jpg"), want: "notes.txt"},
+		{name: "default upload filename", filename: "", file: nil, want: "upload"},
+	}
+
+	for _, tt := range tests {
+		if got := resolveUploadFilename(tt.filename, tt.file); got != tt.want {
+			t.Fatalf("%s: expected %q, got %q", tt.name, tt.want, got)
+		}
+	}
+}
+
 func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	api := NewDocuments(&persistence.PGStore{}, nil, "")
 
@@ -141,5 +164,11 @@ func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
 	}
 	if resp.Payload.Message == nil || *resp.Payload.Message != "File is required" {
 		t.Fatalf("expected missing file message, got %#v", resp.Payload.Message)
+	}
+}
+
+func uploadedFile(filename string) io.ReadCloser {
+	return &runtime.File{
+		Header: &multipart.FileHeader{Filename: filename},
 	}
 }
