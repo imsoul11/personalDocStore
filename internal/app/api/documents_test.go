@@ -176,6 +176,24 @@ func TestIsUploadTooLarge(t *testing.T) {
 	}
 }
 
+func TestIsUploadEmpty(t *testing.T) {
+	tests := []struct {
+		name string
+		file io.ReadCloser
+		want bool
+	}{
+		{name: "empty file", file: uploadedFileWithSize("empty.pdf", 0), want: true},
+		{name: "non-empty file", file: uploadedFileWithSize("full.pdf", 1), want: false},
+		{name: "missing header", file: nil, want: false},
+	}
+
+	for _, tt := range tests {
+		if got := isUploadEmpty(tt.file); got != tt.want {
+			t.Fatalf("%s: expected %v, got %v", tt.name, tt.want, got)
+		}
+	}
+}
+
 func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	api := NewDocuments(&persistence.PGStore{}, nil, "", 0)
 
@@ -242,6 +260,24 @@ func TestPostDocumentsOversizedFileIncludesErrorPayload(t *testing.T) {
 	}
 	if resp.Payload.Message == nil || *resp.Payload.Message != "Uploaded file exceeds size limit" {
 		t.Fatalf("expected size limit message, got %#v", resp.Payload.Message)
+	}
+}
+
+func TestPostDocumentsEmptyFileIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "", 0)
+	params := operations.PostDocumentsParams{
+		File: uploadedFileWithSize("empty.pdf", 0),
+	}
+
+	resp, ok := api.PostDocuments(context.Background(), params, int64(7)).(*operations.PostDocumentsBadRequest)
+	if !ok {
+		t.Fatalf("expected PostDocumentsBadRequest response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusBadRequest {
+		t.Fatalf("expected bad request payload, got %#v", resp.Payload)
+	}
+	if resp.Payload.Message == nil || *resp.Payload.Message != "Uploaded file is empty" {
+		t.Fatalf("expected empty file message, got %#v", resp.Payload.Message)
 	}
 }
 

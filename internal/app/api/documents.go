@@ -138,6 +138,10 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 		log.Warn().Str("op", "post_documents").Str("filename", filename).Msg("unsupported upload extension")
 		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unsupported file type"))
 	}
+	if isUploadEmpty(params.File) {
+		log.Warn().Str("op", "post_documents").Str("filename", filename).Msg("document upload is empty")
+		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Uploaded file is empty"))
+	}
 	if isUploadTooLarge(params.File, d.maxUploadBytes) {
 		log.Warn().Str("op", "post_documents").Str("filename", filename).Int64("max_upload_bytes", d.maxUploadBytes).Msg("document upload exceeds size limit")
 		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Uploaded file exceeds size limit"))
@@ -267,6 +271,13 @@ func resolveUploadFilename(filename string, file io.ReadCloser) string {
 func isUploadTooLarge(file io.ReadCloser, maxBytes int64) bool {
 	if uploadedFile, ok := file.(*runtime.File); ok && uploadedFile.Header != nil {
 		return uploadedFile.Header.Size > maxBytes
+	}
+	return false
+}
+
+func isUploadEmpty(file io.ReadCloser) bool {
+	if uploadedFile, ok := file.(*runtime.File); ok && uploadedFile.Header != nil {
+		return uploadedFile.Header.Size == 0
 	}
 	return false
 }
