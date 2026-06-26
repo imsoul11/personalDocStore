@@ -15,7 +15,8 @@
   },
   "storage": {
     "upload_path": "./storage/uploads",
-    "processed_path": "./storage/processed"
+    "processed_path": "./storage/processed",
+    "max_upload_size_mb": 10
   },
   "log": {
     "level": "debug"

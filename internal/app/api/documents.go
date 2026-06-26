@@ -21,19 +21,21 @@ import (
 	"github.com/imsoul11/personalDocStore/restapi/operations"
 )
 
-const maxDocumentUploadBytes int64 = 10 << 20
+const defaultMaxDocumentUploadBytes int64 = 10 << 20
 
 type DocIMPL struct {
-	store     *persistence.PGStore
-	broker    rabbitmq.Broker
-	uploadDir string
+	store          *persistence.PGStore
+	broker         rabbitmq.Broker
+	uploadDir      string
+	maxUploadBytes int64
 }
 
-func NewDocuments(store *persistence.PGStore, broker rabbitmq.Broker, uploadDir string) *DocIMPL {
+func NewDocuments(store *persistence.PGStore, broker rabbitmq.Broker, uploadDir string, maxUploadBytes int64) *DocIMPL {
 	return &DocIMPL{
-		store:     store,
-		broker:    broker,
-		uploadDir: resolveUploadDir(uploadDir),
+		store:          store,
+		broker:         broker,
+		uploadDir:      resolveUploadDir(uploadDir),
+		maxUploadBytes: resolveMaxUploadBytes(maxUploadBytes),
 	}
 }
 
@@ -136,8 +138,8 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 		log.Warn().Str("op", "post_documents").Str("filename", filename).Msg("unsupported upload extension")
 		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unsupported file type"))
 	}
-	if isUploadTooLarge(params.File, maxDocumentUploadBytes) {
-		log.Warn().Str("op", "post_documents").Str("filename", filename).Int64("max_upload_bytes", maxDocumentUploadBytes).Msg("document upload exceeds size limit")
+	if isUploadTooLarge(params.File, d.maxUploadBytes) {
+		log.Warn().Str("op", "post_documents").Str("filename", filename).Int64("max_upload_bytes", d.maxUploadBytes).Msg("document upload exceeds size limit")
 		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Uploaded file exceeds size limit"))
 	}
 
@@ -162,13 +164,13 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	}
 	defer outFile.Close()
 
-	written, err := io.Copy(outFile, io.LimitReader(params.File, maxDocumentUploadBytes+1))
+	written, err := io.Copy(outFile, io.LimitReader(params.File, d.maxUploadBytes+1))
 	if err != nil {
 		log.Error().Err(err).Msg("failed to save file")
 		return operations.NewPostDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Unable to save uploaded file"))
 	}
-	if written > maxDocumentUploadBytes {
-		log.Warn().Str("op", "post_documents").Str("filename", storedName).Int64("max_upload_bytes", maxDocumentUploadBytes).Msg("document upload exceeded size limit during write")
+	if written > d.maxUploadBytes {
+		log.Warn().Str("op", "post_documents").Str("filename", storedName).Int64("max_upload_bytes", d.maxUploadBytes).Msg("document upload exceeded size limit during write")
 		if cleanupErr := cleanupUploadedFile(filePath); cleanupErr != nil {
 			log.Error().Err(cleanupErr).Str("path", filePath).Msg("failed to clean up oversized uploaded file")
 		}
@@ -239,6 +241,13 @@ func resolveUploadDir(uploadDir string) string {
 		return "./storage/uploads"
 	}
 	return uploadDir
+}
+
+func resolveMaxUploadBytes(maxUploadBytes int64) int64 {
+	if maxUploadBytes <= 0 {
+		return defaultMaxDocumentUploadBytes
+	}
+	return maxUploadBytes
 }
 
 func resolveUploadFilename(filename string, file io.ReadCloser) string {

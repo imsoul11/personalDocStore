@@ -97,7 +97,7 @@ func configureAPI(api *operations.DocstoreAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
-	// operations.PostDocumentsMaxParseMemory = 32 << 20
+	operations.PostDocumentsMaxParseMemory = app.MaxDocumentUploadBytes()
 
 	api.GetDocumentsHandler = operations.GetDocumentsHandlerFunc(func(params operations.GetDocumentsParams, principal interface{}) middleware.Responder {
 		log.Debug().Str("op", "route_get_documents").Msg("delegating to documents API")

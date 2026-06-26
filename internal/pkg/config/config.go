@@ -33,8 +33,9 @@ type WorkerConfig struct {
 }
 
 type StorageConfig struct {
-	UploadPath    string `json:"upload_path"`
-	ProcessedPath string `json:"processed_path"`
+	UploadPath      string `json:"upload_path"`
+	ProcessedPath   string `json:"processed_path"`
+	MaxUploadSizeMB int    `json:"max_upload_size_mb"`
 }
 
 type LogConfig struct {

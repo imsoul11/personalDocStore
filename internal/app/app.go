@@ -15,9 +15,14 @@ import (
 )
 
 var jwtSecretValue string
+var maxDocumentUploadBytesValue int64
 
 func JWTSecret() string {
 	return jwtSecretValue
+}
+
+func MaxDocumentUploadBytes() int64 {
+	return maxDocumentUploadBytesValue
 }
 
 // Init initialises the application: loads config, creates DB, creates the
@@ -50,6 +55,7 @@ func Init() {
 		log.Fatal("app.Init: JWT_SECRET env var must be set")
 	}
 	jwtSecretValue = jwtSecret
+	maxDocumentUploadBytesValue = int64(cfg.Storage.MaxUploadSizeMB) << 20
 
 	dbInstance, err := db.New(cfg.Database)
 	if err != nil {
@@ -64,7 +70,7 @@ func Init() {
 	store := persistence.New(dbInstance)
 
 	appapi.Cfg = &appapi.Config{
-		DocumentsAPI: appapi.NewDocuments(store, broker, cfg.Storage.UploadPath),
+		DocumentsAPI: appapi.NewDocuments(store, broker, cfg.Storage.UploadPath, maxDocumentUploadBytesValue),
 		UsersAPI:     appapi.NewUsers(store, jwtSecret),
 	}
 	pkglog.Logger().Info().Str("op", "app_init").Msg("application APIs wired")

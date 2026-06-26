@@ -109,6 +109,24 @@ func TestResolveUploadDir(t *testing.T) {
 	}
 }
 
+func TestResolveMaxUploadBytes(t *testing.T) {
+	tests := []struct {
+		name string
+		in   int64
+		want int64
+	}{
+		{name: "configured bytes", in: 5 << 20, want: 5 << 20},
+		{name: "default bytes", in: 0, want: defaultMaxDocumentUploadBytes},
+		{name: "negative bytes use default", in: -1, want: defaultMaxDocumentUploadBytes},
+	}
+
+	for _, tt := range tests {
+		if got := resolveMaxUploadBytes(tt.in); got != tt.want {
+			t.Fatalf("%s: expected %d, got %d", tt.name, tt.want, got)
+		}
+	}
+}
+
 func TestResolveUploadFilename(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -129,26 +147,37 @@ func TestResolveUploadFilename(t *testing.T) {
 	}
 }
 
+func TestNewDocumentsUsesResolvedUploadConfig(t *testing.T) {
+	api := NewDocuments(nil, nil, " ./uploads ", 5<<20)
+
+	if api.uploadDir != "./uploads" {
+		t.Fatalf("expected upload dir to be trimmed, got %q", api.uploadDir)
+	}
+	if api.maxUploadBytes != 5<<20 {
+		t.Fatalf("expected max upload bytes to be set, got %d", api.maxUploadBytes)
+	}
+}
+
 func TestIsUploadTooLarge(t *testing.T) {
 	tests := []struct {
 		name string
 		file io.ReadCloser
 		want bool
 	}{
-		{name: "below limit", file: uploadedFileWithSize("small.pdf", maxDocumentUploadBytes), want: false},
-		{name: "above limit", file: uploadedFileWithSize("big.pdf", maxDocumentUploadBytes+1), want: true},
+		{name: "below limit", file: uploadedFileWithSize("small.pdf", defaultMaxDocumentUploadBytes), want: false},
+		{name: "above limit", file: uploadedFileWithSize("big.pdf", defaultMaxDocumentUploadBytes+1), want: true},
 		{name: "missing header", file: nil, want: false},
 	}
 
 	for _, tt := range tests {
-		if got := isUploadTooLarge(tt.file, maxDocumentUploadBytes); got != tt.want {
+		if got := isUploadTooLarge(tt.file, defaultMaxDocumentUploadBytes); got != tt.want {
 			t.Fatalf("%s: expected %v, got %v", tt.name, tt.want, got)
 		}
 	}
 }
 
 func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(&persistence.PGStore{}, nil, "")
+	api := NewDocuments(&persistence.PGStore{}, nil, "", 0)
 
 	resp, ok := api.GetDocuments(context.Background(), operations.GetDocumentsParams{}, nil).(*operations.GetDocumentsUnauthorized)
 	if !ok {
@@ -160,7 +189,7 @@ func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 }
 
 func TestGetDocumentsStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(nil, nil, "")
+	api := NewDocuments(nil, nil, "", 0)
 
 	resp, ok := api.GetDocuments(context.Background(), operations.GetDocumentsParams{}, int64(7)).(*operations.GetDocumentsInternalServerError)
 	if !ok {
@@ -172,7 +201,7 @@ func TestGetDocumentsStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
 }
 
 func TestPostDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(nil, nil, "")
+	api := NewDocuments(nil, nil, "", 0)
 
 	resp, ok := api.PostDocuments(context.Background(), operations.PostDocumentsParams{}, nil).(*operations.PostDocumentsUnauthorized)
 	if !ok {
@@ -184,7 +213,7 @@ func TestPostDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 }
 
 func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(nil, nil, "")
+	api := NewDocuments(nil, nil, "", 0)
 
 	resp, ok := api.PostDocuments(context.Background(), operations.PostDocumentsParams{}, int64(7)).(*operations.PostDocumentsBadRequest)
 	if !ok {
@@ -199,9 +228,9 @@ func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
 }
 
 func TestPostDocumentsOversizedFileIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(nil, nil, "")
+	api := NewDocuments(nil, nil, "", 0)
 	params := operations.PostDocumentsParams{
-		File: uploadedFileWithSize("large.pdf", maxDocumentUploadBytes+1),
+		File: uploadedFileWithSize("large.pdf", defaultMaxDocumentUploadBytes+1),
 	}
 
 	resp, ok := api.PostDocuments(context.Background(), params, int64(7)).(*operations.PostDocumentsBadRequest)
@@ -217,7 +246,7 @@ func TestPostDocumentsOversizedFileIncludesErrorPayload(t *testing.T) {
 }
 
 func TestGetDocumentsIDStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
-	api := NewDocuments(nil, nil, "")
+	api := NewDocuments(nil, nil, "", 0)
 
 	resp, ok := api.GetDocumentsID(context.Background(), operations.GetDocumentsIDParams{}, int64(7)).(*operations.GetDocumentsIDInternalServerError)
 	if !ok {
