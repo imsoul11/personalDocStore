@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"mime/multipart"
@@ -128,6 +129,24 @@ func TestResolveUploadFilename(t *testing.T) {
 	}
 }
 
+func TestIsUploadTooLarge(t *testing.T) {
+	tests := []struct {
+		name string
+		file io.ReadCloser
+		want bool
+	}{
+		{name: "below limit", file: uploadedFileWithSize("small.pdf", maxDocumentUploadBytes), want: false},
+		{name: "above limit", file: uploadedFileWithSize("big.pdf", maxDocumentUploadBytes+1), want: true},
+		{name: "missing header", file: nil, want: false},
+	}
+
+	for _, tt := range tests {
+		if got := isUploadTooLarge(tt.file, maxDocumentUploadBytes); got != tt.want {
+			t.Fatalf("%s: expected %v, got %v", tt.name, tt.want, got)
+		}
+	}
+}
+
 func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	api := NewDocuments(&persistence.PGStore{}, nil, "")
 
@@ -179,6 +198,24 @@ func TestPostDocumentsMissingFileIncludesErrorPayload(t *testing.T) {
 	}
 }
 
+func TestPostDocumentsOversizedFileIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(nil, nil, "")
+	params := operations.PostDocumentsParams{
+		File: uploadedFileWithSize("large.pdf", maxDocumentUploadBytes+1),
+	}
+
+	resp, ok := api.PostDocuments(context.Background(), params, int64(7)).(*operations.PostDocumentsBadRequest)
+	if !ok {
+		t.Fatalf("expected PostDocumentsBadRequest response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusBadRequest {
+		t.Fatalf("expected bad request payload, got %#v", resp.Payload)
+	}
+	if resp.Payload.Message == nil || *resp.Payload.Message != "Uploaded file exceeds size limit" {
+		t.Fatalf("expected size limit message, got %#v", resp.Payload.Message)
+	}
+}
+
 func TestGetDocumentsIDStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
 	api := NewDocuments(nil, nil, "")
 
@@ -193,6 +230,22 @@ func TestGetDocumentsIDStoreNotConfiguredIncludesErrorPayload(t *testing.T) {
 
 func uploadedFile(filename string) io.ReadCloser {
 	return &runtime.File{
+		Data:   testMultipartFile{Reader: bytes.NewReader(nil)},
 		Header: &multipart.FileHeader{Filename: filename},
 	}
+}
+
+func uploadedFileWithSize(filename string, size int64) io.ReadCloser {
+	return &runtime.File{
+		Data:   testMultipartFile{Reader: bytes.NewReader(nil)},
+		Header: &multipart.FileHeader{Filename: filename, Size: size},
+	}
+}
+
+type testMultipartFile struct {
+	*bytes.Reader
+}
+
+func (f testMultipartFile) Close() error {
+	return nil
 }
