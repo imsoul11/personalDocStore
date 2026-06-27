@@ -48,6 +48,60 @@ func TestSwaggerDocumentFromModel(t *testing.T) {
 	}
 }
 
+func TestSwaggerDocumentFromModelSupportsAllStatuses(t *testing.T) {
+	createdAt := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC)
+
+	for _, status := range []string{
+		intmodels.StatusUploaded,
+		intmodels.StatusProcessing,
+		intmodels.StatusCompleted,
+		intmodels.StatusFailed,
+	} {
+		doc := &intmodels.Document{
+			ID:        17,
+			UserID:    29,
+			Filename:  "file.pdf",
+			Status:    status,
+			CreatedAt: createdAt,
+		}
+
+		payload := swaggerDocumentFromModel(doc)
+		if payload == nil {
+			t.Fatalf("expected swagger document for status %q", status)
+		}
+		if payload.Status == nil || *payload.Status != status {
+			t.Fatalf("expected status %q, got %#v", status, payload.Status)
+		}
+	}
+}
+
+func TestDocumentResponsePayloadSupportsAllStatuses(t *testing.T) {
+	createdAt := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC)
+
+	for _, status := range []string{
+		intmodels.StatusUploaded,
+		intmodels.StatusProcessing,
+		intmodels.StatusCompleted,
+		intmodels.StatusFailed,
+	} {
+		doc := &intmodels.Document{
+			ID:        17,
+			UserID:    29,
+			Filename:  "file.pdf",
+			Status:    status,
+			CreatedAt: createdAt,
+		}
+
+		payload := documentResponsePayload("Document fetched successfully", doc)
+		if payload == nil || payload.Document == nil {
+			t.Fatalf("expected document response payload for status %q", status)
+		}
+		if payload.Document.Status == nil || *payload.Document.Status != status {
+			t.Fatalf("expected status %q, got %#v", status, payload.Document.Status)
+		}
+	}
+}
+
 func TestCleanupUploadedFileRemovesFile(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "upload.txt")
