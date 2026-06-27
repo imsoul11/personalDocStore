@@ -36,11 +36,18 @@ func (pgstr *PGStore) GetDocumentByID(ctx context.Context, id int64) (*models.Do
 	return doc, nil
 }
 
-func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64) ([]*models.Document, error) {
+func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64, limit int64, offset int64) ([]*models.Document, error) {
 	log := pkglog.Logger()
-	log.Debug().Str("op", "store_get_documents_by_user_id").Int64("user_id", userID).Msg("fetching documents by user id")
+	log.Debug().Str("op", "store_get_documents_by_user_id").Int64("user_id", userID).Int64("limit", limit).Int64("offset", offset).Msg("fetching documents by user id")
 	var docs []*models.Document
-	err := pgstr.db.ModelContext(ctx, &docs).Where("user_id = ?", userID).Order("created_at DESC").Select()
+	query := pgstr.db.ModelContext(ctx, &docs).Where("user_id = ?", userID).Order("created_at DESC")
+	if limit > 0 {
+		query = query.Limit(int(limit))
+	}
+	if offset > 0 {
+		query = query.Offset(int(offset))
+	}
+	err := query.Select()
 	if err != nil {
 		log.Error().Str("op", "store_get_documents_by_user_id").Int64("user_id", userID).Err(err).Msg("fetch documents by user id failed")
 		return nil, err

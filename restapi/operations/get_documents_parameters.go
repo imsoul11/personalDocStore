@@ -7,6 +7,7 @@ package operations
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
@@ -28,6 +29,16 @@ type GetDocumentsParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
+
+	/*Maximum number of documents to return
+	  In: query
+	*/
+	Limit *int64
+
+	/*Number of documents to skip
+	  In: query
+	*/
+	Offset *int64
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -38,6 +49,24 @@ func (o *GetDocumentsParams) BindRequest(r *http.Request, route *middleware.Matc
 	var res []error
 
 	o.HTTPRequest = r
+
+	if rawLimit := r.URL.Query().Get("limit"); rawLimit != "" {
+		value, err := strconv.ParseInt(rawLimit, 10, 64)
+		if err != nil {
+			res = append(res, errors.NewParseError("limit", "query", rawLimit, err))
+		} else {
+			o.Limit = &value
+		}
+	}
+
+	if rawOffset := r.URL.Query().Get("offset"); rawOffset != "" {
+		value, err := strconv.ParseInt(rawOffset, 10, 64)
+		if err != nil {
+			res = append(res, errors.NewParseError("offset", "query", rawOffset, err))
+		} else {
+			o.Offset = &value
+		}
+	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

@@ -181,6 +181,41 @@ func TestResolveMaxUploadBytes(t *testing.T) {
 	}
 }
 
+func TestResolveDocumentListPagination(t *testing.T) {
+	limit, offset, ok := resolveDocumentListPagination(operations.GetDocumentsParams{})
+	if !ok {
+		t.Fatal("expected default pagination to be valid")
+	}
+	if limit != defaultDocumentListLimit || offset != 0 {
+		t.Fatalf("expected default limit=%d offset=0, got limit=%d offset=%d", defaultDocumentListLimit, limit, offset)
+	}
+
+	customLimit := int64(10)
+	customOffset := int64(5)
+	limit, offset, ok = resolveDocumentListPagination(operations.GetDocumentsParams{
+		Limit:  &customLimit,
+		Offset: &customOffset,
+	})
+	if !ok {
+		t.Fatal("expected custom pagination to be valid")
+	}
+	if limit != customLimit || offset != customOffset {
+		t.Fatalf("expected limit=%d offset=%d, got limit=%d offset=%d", customLimit, customOffset, limit, offset)
+	}
+}
+
+func TestResolveDocumentListPaginationRejectsInvalidValues(t *testing.T) {
+	zeroLimit := int64(0)
+	if _, _, ok := resolveDocumentListPagination(operations.GetDocumentsParams{Limit: &zeroLimit}); ok {
+		t.Fatal("expected zero limit to be rejected")
+	}
+
+	negativeOffset := int64(-1)
+	if _, _, ok := resolveDocumentListPagination(operations.GetDocumentsParams{Offset: &negativeOffset}); ok {
+		t.Fatal("expected negative offset to be rejected")
+	}
+}
+
 func TestResolveUploadFilename(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -257,6 +292,19 @@ func TestGetDocumentsUnauthorizedIncludesErrorPayload(t *testing.T) {
 	}
 	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusUnauthorized {
 		t.Fatalf("expected unauthorized error payload, got %#v", resp.Payload)
+	}
+}
+
+func TestGetDocumentsInvalidPaginationIncludesErrorPayload(t *testing.T) {
+	api := NewDocuments(&persistence.PGStore{}, nil, "", 0)
+	zeroLimit := int64(0)
+
+	resp, ok := api.GetDocuments(context.Background(), operations.GetDocumentsParams{Limit: &zeroLimit}, int64(7)).(*operations.GetDocumentsBadRequest)
+	if !ok {
+		t.Fatalf("expected GetDocumentsBadRequest response")
+	}
+	if resp.Payload == nil || resp.Payload.Code == nil || *resp.Payload.Code != http.StatusBadRequest {
+		t.Fatalf("expected bad request payload, got %#v", resp.Payload)
 	}
 }
 

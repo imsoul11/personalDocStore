@@ -149,11 +149,28 @@ paths:
       produces: [application/json]
       security:
         - Bearer: []
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          format: int64
+          minimum: 1
+          description: Maximum number of documents to return
+        - in: query
+          name: offset
+          type: integer
+          format: int64
+          minimum: 0
+          description: Number of documents to skip
       responses:
         200:
           description: List of documents
           schema:
             $ref: '#/definitions/DocumentsListResponse'
+        400:
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         401:
           description: Unauthorized
           schema:

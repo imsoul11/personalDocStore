@@ -58,6 +58,51 @@ func (o *GetDocumentsOK) WriteResponse(rw http.ResponseWriter, producer runtime.
 	}
 }
 
+// GetDocumentsBadRequestCode is the HTTP code returned for type GetDocumentsBadRequest
+const GetDocumentsBadRequestCode int = 400
+
+/*
+GetDocumentsBadRequest Bad request
+
+swagger:response getDocumentsBadRequest
+*/
+type GetDocumentsBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorResponse `json:"body,omitempty"`
+}
+
+// NewGetDocumentsBadRequest creates GetDocumentsBadRequest with default headers values
+func NewGetDocumentsBadRequest() *GetDocumentsBadRequest {
+
+	return &GetDocumentsBadRequest{}
+}
+
+// WithPayload adds the payload to the get documents bad request response
+func (o *GetDocumentsBadRequest) WithPayload(payload *models.ErrorResponse) *GetDocumentsBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get documents bad request response
+func (o *GetDocumentsBadRequest) SetPayload(payload *models.ErrorResponse) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetDocumentsBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // GetDocumentsUnauthorizedCode is the HTTP code returned for type GetDocumentsUnauthorized
 const GetDocumentsUnauthorizedCode int = 401
 
