@@ -202,6 +202,7 @@ definitions:
       status:
         type: string
         example: uploaded
+        enum: [uploaded, processing, completed, failed]
       created_at:
         type: string
         format: date-time

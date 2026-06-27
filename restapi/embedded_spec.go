@@ -386,7 +386,13 @@ func init() {
         },
         "status": {
           "type": "string",
-          "example": "uploaded"
+          "example": "uploaded",
+          "enum": [
+            "uploaded",
+            "processing",
+            "completed",
+            "failed"
+          ]
         },
         "user_id": {
           "type": "integer",
@@ -940,7 +946,13 @@ func init() {
         },
         "status": {
           "type": "string",
-          "example": "uploaded"
+          "example": "uploaded",
+          "enum": [
+            "uploaded",
+            "processing",
+            "completed",
+            "failed"
+          ]
         },
         "user_id": {
           "type": "integer",

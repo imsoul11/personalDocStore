@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -40,6 +41,18 @@ type Document struct {
 	// user id
 	// Required: true
 	UserID *int64 `json:"user_id"`
+}
+
+var documentTypeStatusPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["uploaded","processing","completed","failed"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		documentTypeStatusPropEnum = append(documentTypeStatusPropEnum, v)
+	}
 }
 
 // Validate validates this document
@@ -106,6 +119,10 @@ func (m *Document) validateID(formats strfmt.Registry) error {
 func (m *Document) validateStatus(formats strfmt.Registry) error {
 
 	if err := validate.Required("status", "body", m.Status); err != nil {
+		return err
+	}
+
+	if err := validate.EnumCase("status", "body", *m.Status, documentTypeStatusPropEnum, true); err != nil {
 		return err
 	}
 
