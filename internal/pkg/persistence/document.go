@@ -56,6 +56,18 @@ func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64, lim
 	return docs, nil
 }
 
+func (pgstr *PGStore) CountDocumentsByUserID(ctx context.Context, userID int64) (int64, error) {
+	log := pkglog.Logger()
+	log.Debug().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Msg("counting documents by user id")
+	count, err := pgstr.db.ModelContext(ctx, (*models.Document)(nil)).Where("user_id = ?", userID).Count()
+	if err != nil {
+		log.Error().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Err(err).Msg("count documents by user id failed")
+		return 0, err
+	}
+	log.Debug().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Int("documents_count", count).Msg("documents counted")
+	return int64(count), nil
+}
+
 func (pgstr *PGStore) UpdateDocumentStatus(ctx context.Context, id int64, status string) error {
 	log := pkglog.Logger()
 	log.Debug().Str("op", "store_update_document_status").Int64("document_id", id).Str("status", status).Msg("updating document status")

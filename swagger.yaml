@@ -252,7 +252,7 @@ definitions:
 
   DocumentsListResponse:
     type: object
-    required: [success, acknowledgement, documents]
+    required: [success, acknowledgement, documents, total_count]
     properties:
       success:
         type: boolean
@@ -264,6 +264,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Document'
+      total_count:
+        type: integer
+        format: int64
+        example: 42
 
   AckResponse:
     type: object

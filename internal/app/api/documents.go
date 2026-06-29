@@ -65,12 +65,18 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 		log.Error().Str("op", "get_documents").Int64("user_id", userID).Err(err).Msg("failed to fetch documents")
 		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to fetch documents"))
 	}
-	log.Info().Str("op", "get_documents").Int64("user_id", userID).Int("documents_count", len(docs)).Msg("documents fetched")
+	totalCount, err := d.store.CountDocumentsByUserID(ctx, userID)
+	if err != nil {
+		log.Error().Str("op", "get_documents").Int64("user_id", userID).Err(err).Msg("failed to count documents")
+		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to count documents"))
+	}
+	log.Info().Str("op", "get_documents").Int64("user_id", userID).Int("documents_count", len(docs)).Int64("total_count", totalCount).Msg("documents fetched")
 
 	_ = params
 
 	success := true
 	ack := "Documents fetched successfully"
+	totalCountValue := totalCount
 	respDocs := make([]*swgmodels.Document, 0, len(docs))
 	for _, doc := range docs {
 		if swaggerDoc := swaggerDocumentFromModel(doc); swaggerDoc != nil {
@@ -82,6 +88,7 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 		Success:         &success,
 		Acknowledgement: &ack,
 		Documents:       respDocs,
+		TotalCount:      &totalCountValue,
 	})
 }
 

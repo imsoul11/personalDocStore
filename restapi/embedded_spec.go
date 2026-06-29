@@ -447,7 +447,8 @@ func init() {
       "required": [
         "success",
         "acknowledgement",
-        "documents"
+        "documents",
+        "total_count"
       ],
       "properties": {
         "acknowledgement": {
@@ -463,6 +464,11 @@ func init() {
         "success": {
           "type": "boolean",
           "example": true
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64",
+          "example": 42
         }
       }
     },
@@ -1007,7 +1013,8 @@ func init() {
       "required": [
         "success",
         "acknowledgement",
-        "documents"
+        "documents",
+        "total_count"
       ],
       "properties": {
         "acknowledgement": {
@@ -1023,6 +1030,11 @@ func init() {
         "success": {
           "type": "boolean",
           "example": true
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64",
+          "example": 42
         }
       }
     },

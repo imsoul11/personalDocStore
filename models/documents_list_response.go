@@ -33,6 +33,11 @@ type DocumentsListResponse struct {
 	// Example: true
 	// Required: true
 	Success *bool `json:"success"`
+
+	// total count
+	// Example: 42
+	// Required: true
+	TotalCount *int64 `json:"total_count"`
 }
 
 // Validate validates this documents list response
@@ -48,6 +53,10 @@ func (m *DocumentsListResponse) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSuccess(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTotalCount(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -96,6 +105,15 @@ func (m *DocumentsListResponse) validateDocuments(formats strfmt.Registry) error
 func (m *DocumentsListResponse) validateSuccess(formats strfmt.Registry) error {
 
 	if err := validate.Required("success", "body", m.Success); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *DocumentsListResponse) validateTotalCount(formats strfmt.Registry) error {
+
+	if err := validate.Required("total_count", "body", m.TotalCount); err != nil {
 		return err
 	}
 
