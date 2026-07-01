@@ -53,19 +53,19 @@ func (d *DocIMPL) GetDocuments(ctx context.Context, params operations.GetDocumen
 		return operations.NewGetDocumentsUnauthorized().WithPayload(errorPayload(http.StatusUnauthorized, "Unauthorized"))
 	}
 
-	limit, offset, ok := resolveDocumentListPagination(params)
+	status, limit, offset, ok := resolveDocumentListQuery(params)
 	if !ok {
 		log.Warn().Str("op", "get_documents").Int64("user_id", userID).Msg("invalid pagination parameters")
-		return operations.NewGetDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Invalid pagination parameters"))
+		return operations.NewGetDocumentsBadRequest().WithPayload(errorPayload(http.StatusBadRequest, "Invalid document list parameters"))
 	}
 
-	log.Info().Str("op", "get_documents").Int64("user_id", userID).Int64("limit", limit).Int64("offset", offset).Msg("fetching user documents")
-	docs, err := d.store.GetDocumentByUserID(ctx, userID, limit, offset)
+	log.Info().Str("op", "get_documents").Int64("user_id", userID).Str("status", status).Int64("limit", limit).Int64("offset", offset).Msg("fetching user documents")
+	docs, err := d.store.GetDocumentByUserID(ctx, userID, status, limit, offset)
 	if err != nil {
 		log.Error().Str("op", "get_documents").Int64("user_id", userID).Err(err).Msg("failed to fetch documents")
 		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to fetch documents"))
 	}
-	totalCount, err := d.store.CountDocumentsByUserID(ctx, userID)
+	totalCount, err := d.store.CountDocumentsByUserID(ctx, userID, status)
 	if err != nil {
 		log.Error().Str("op", "get_documents").Int64("user_id", userID).Err(err).Msg("failed to count documents")
 		return operations.NewGetDocumentsInternalServerError().WithPayload(errorPayload(http.StatusInternalServerError, "Unable to count documents"))
@@ -262,24 +262,31 @@ func resolveUploadDir(uploadDir string) string {
 	return uploadDir
 }
 
-func resolveDocumentListPagination(params operations.GetDocumentsParams) (int64, int64, bool) {
+func resolveDocumentListQuery(params operations.GetDocumentsParams) (string, int64, int64, bool) {
+	status := ""
 	limit := defaultDocumentListLimit
 	offset := int64(0)
 
+	if params.Status != nil {
+		status = strings.TrimSpace(*params.Status)
+		if status != "" && !intmodels.IsSupportedDocumentStatus(status) {
+			return "", 0, 0, false
+		}
+	}
 	if params.Limit != nil {
 		if *params.Limit <= 0 {
-			return 0, 0, false
+			return "", 0, 0, false
 		}
 		limit = *params.Limit
 	}
 	if params.Offset != nil {
 		if *params.Offset < 0 {
-			return 0, 0, false
+			return "", 0, 0, false
 		}
 		offset = *params.Offset
 	}
 
-	return limit, offset, true
+	return status, limit, offset, true
 }
 
 func resolveMaxUploadBytes(maxUploadBytes int64) int64 {

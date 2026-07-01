@@ -23,6 +23,13 @@ var supportedDocumentExtensions = map[string]struct{}{
 	".png":  {},
 }
 
+var supportedDocumentStatuses = map[string]struct{}{
+	StatusUploaded:   {},
+	StatusProcessing: {},
+	StatusCompleted:  {},
+	StatusFailed:     {},
+}
+
 type Document struct {
 	ID        int64     `pg:"id,pk"`
 	UserID    int64     `pg:"user_id"`
@@ -34,5 +41,11 @@ type Document struct {
 func IsSupportedDocument(filename string) bool {
 	ext := strings.ToLower(strings.TrimSpace(filepath.Ext(filename)))
 	_, ok := supportedDocumentExtensions[ext]
+	return ok
+}
+
+func IsSupportedDocumentStatus(status string) bool {
+	status = strings.TrimSpace(status)
+	_, ok := supportedDocumentStatuses[status]
 	return ok
 }

@@ -39,6 +39,11 @@ type GetDocumentsParams struct {
 	  In: query
 	*/
 	Offset *int64
+
+	/*Optional document status to filter by
+	  In: query
+	*/
+	Status *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -66,6 +71,10 @@ func (o *GetDocumentsParams) BindRequest(r *http.Request, route *middleware.Matc
 		} else {
 			o.Offset = &value
 		}
+	}
+
+	if rawStatus := r.URL.Query().Get("status"); rawStatus != "" {
+		o.Status = &rawStatus
 	}
 
 	if len(res) > 0 {

@@ -36,11 +36,14 @@ func (pgstr *PGStore) GetDocumentByID(ctx context.Context, id int64) (*models.Do
 	return doc, nil
 }
 
-func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64, limit int64, offset int64) ([]*models.Document, error) {
+func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64, status string, limit int64, offset int64) ([]*models.Document, error) {
 	log := pkglog.Logger()
-	log.Debug().Str("op", "store_get_documents_by_user_id").Int64("user_id", userID).Int64("limit", limit).Int64("offset", offset).Msg("fetching documents by user id")
+	log.Debug().Str("op", "store_get_documents_by_user_id").Int64("user_id", userID).Str("status", status).Int64("limit", limit).Int64("offset", offset).Msg("fetching documents by user id")
 	var docs []*models.Document
 	query := pgstr.db.ModelContext(ctx, &docs).Where("user_id = ?", userID).Order("created_at DESC")
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
 	if limit > 0 {
 		query = query.Limit(int(limit))
 	}
@@ -56,10 +59,14 @@ func (pgstr *PGStore) GetDocumentByUserID(ctx context.Context, userID int64, lim
 	return docs, nil
 }
 
-func (pgstr *PGStore) CountDocumentsByUserID(ctx context.Context, userID int64) (int64, error) {
+func (pgstr *PGStore) CountDocumentsByUserID(ctx context.Context, userID int64, status string) (int64, error) {
 	log := pkglog.Logger()
-	log.Debug().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Msg("counting documents by user id")
-	count, err := pgstr.db.ModelContext(ctx, (*models.Document)(nil)).Where("user_id = ?", userID).Count()
+	log.Debug().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Str("status", status).Msg("counting documents by user id")
+	query := pgstr.db.ModelContext(ctx, (*models.Document)(nil)).Where("user_id = ?", userID)
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	count, err := query.Count()
 	if err != nil {
 		log.Error().Str("op", "store_count_documents_by_user_id").Int64("user_id", userID).Err(err).Msg("count documents by user id failed")
 		return 0, err

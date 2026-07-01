@@ -162,6 +162,11 @@ paths:
           format: int64
           minimum: 0
           description: Number of documents to skip
+        - in: query
+          name: status
+          type: string
+          enum: [uploaded, processing, completed, failed]
+          description: Optional document status to filter by
       responses:
         200:
           description: List of documents
