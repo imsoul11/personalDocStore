@@ -36,6 +36,7 @@ type Document struct {
 	Filename  string    `pg:"filename"`
 	Status    string    `pg:"status"`
 	CreatedAt time.Time `pg:"created_at"`
+	UpdatedAt time.Time `pg:"updated_at"`
 }
 
 func IsSupportedDocument(filename string) bool {

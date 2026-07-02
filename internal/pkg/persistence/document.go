@@ -80,6 +80,7 @@ func (pgstr *PGStore) UpdateDocumentStatus(ctx context.Context, id int64, status
 	log.Debug().Str("op", "store_update_document_status").Int64("document_id", id).Str("status", status).Msg("updating document status")
 	_, err := pgstr.db.ModelContext(ctx, (*models.Document)(nil)).
 		Set("status = ?", status).
+		Set("updated_at = NOW()").
 		Where("id = ?", id).
 		Update()
 	if err != nil {

@@ -207,11 +207,13 @@ func (d *DocIMPL) PostDocuments(ctx context.Context, params operations.PostDocum
 	}
 
 	// Save document metadata to database
+	createdAt := time.Now()
 	doc := &intmodels.Document{
 		UserID:    userID,
 		Filename:  storedName,
 		Status:    intmodels.StatusUploaded,
-		CreatedAt: time.Now(),
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
 	}
 	if err := d.store.CreateDocument(ctx, doc); err != nil {
 		log.Error().Err(err).Msg("failed to save document metadata")
