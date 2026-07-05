@@ -38,6 +38,11 @@ type Document struct {
 	// Required: true
 	Status *string `json:"status"`
 
+	// updated at
+	// Required: true
+	// Format: date-time
+	UpdatedAt *strfmt.DateTime `json:"updated_at"`
+
 	// user id
 	// Required: true
 	UserID *int64 `json:"user_id"`
@@ -72,6 +77,10 @@ func (m *Document) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateStatus(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateUpdatedAt(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -123,6 +132,19 @@ func (m *Document) validateStatus(formats strfmt.Registry) error {
 	}
 
 	if err := validate.EnumCase("status", "body", *m.Status, documentTypeStatusPropEnum, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Document) validateUpdatedAt(formats strfmt.Registry) error {
+
+	if err := validate.Required("updated_at", "body", m.UpdatedAt); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("updated_at", "body", "date-time", m.UpdatedAt.String(), formats); err != nil {
 		return err
 	}
 

@@ -370,7 +370,8 @@ func init() {
         "user_id",
         "filename",
         "status",
-        "created_at"
+        "created_at",
+        "updated_at"
       ],
       "properties": {
         "created_at": {
@@ -393,6 +394,10 @@ func init() {
             "completed",
             "failed"
           ]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
         },
         "user_id": {
           "type": "integer",
@@ -936,7 +941,8 @@ func init() {
         "user_id",
         "filename",
         "status",
-        "created_at"
+        "created_at",
+        "updated_at"
       ],
       "properties": {
         "created_at": {
@@ -959,6 +965,10 @@ func init() {
             "completed",
             "failed"
           ]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
         },
         "user_id": {
           "type": "integer",

@@ -336,6 +336,7 @@ func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {
 	filename := doc.Filename
 	status := doc.Status
 	created := strfmt.DateTime(doc.CreatedAt)
+	updated := strfmt.DateTime(doc.UpdatedAt)
 
 	return &swgmodels.Document{
 		ID:        &id,
@@ -343,6 +344,7 @@ func swaggerDocumentFromModel(doc *intmodels.Document) *swgmodels.Document {
 		Filename:  &filename,
 		Status:    &status,
 		CreatedAt: &created,
+		UpdatedAt: &updated,
 	}
 }
 

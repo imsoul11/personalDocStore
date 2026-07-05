@@ -15,6 +15,7 @@ func TestDocumentsListResponseRequiresTotalCount(t *testing.T) {
 	filename := "file.pdf"
 	status := "uploaded"
 	createdAt := strfmt.DateTime(time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC))
+	updatedAt := strfmt.DateTime(time.Date(2026, time.January, 2, 4, 4, 5, 0, time.UTC))
 
 	doc := &Document{
 		ID:        &id,
@@ -22,6 +23,7 @@ func TestDocumentsListResponseRequiresTotalCount(t *testing.T) {
 		Filename:  &filename,
 		Status:    &status,
 		CreatedAt: &createdAt,
+		UpdatedAt: &updatedAt,
 	}
 
 	resp := &DocumentsListResponse{

@@ -211,7 +211,7 @@ paths:
 definitions:
   Document:
     type: object
-    required: [id, user_id, filename, status, created_at]
+    required: [id, user_id, filename, status, created_at, updated_at]
     properties:
       id:
         type: integer
@@ -226,6 +226,9 @@ definitions:
         example: uploaded
         enum: [uploaded, processing, completed, failed]
       created_at:
+        type: string
+        format: date-time
+      updated_at:
         type: string
         format: date-time
 

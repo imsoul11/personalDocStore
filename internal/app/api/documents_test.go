@@ -25,6 +25,7 @@ func TestSwaggerDocumentFromModel(t *testing.T) {
 		Filename:  "file.pdf",
 		Status:    intmodels.StatusUploaded,
 		CreatedAt: createdAt,
+		UpdatedAt: createdAt.Add(2 * time.Hour),
 	}
 
 	payload := swaggerDocumentFromModel(doc)
@@ -46,6 +47,9 @@ func TestSwaggerDocumentFromModel(t *testing.T) {
 	if payload.CreatedAt == nil || !time.Time(*payload.CreatedAt).Equal(createdAt) {
 		t.Fatalf("expected created_at %s", createdAt.Format(time.RFC3339))
 	}
+	if payload.UpdatedAt == nil || !time.Time(*payload.UpdatedAt).Equal(doc.UpdatedAt) {
+		t.Fatalf("expected updated_at %s", doc.UpdatedAt.Format(time.RFC3339))
+	}
 }
 
 func TestSwaggerDocumentFromModelSupportsAllStatuses(t *testing.T) {
@@ -63,6 +67,7 @@ func TestSwaggerDocumentFromModelSupportsAllStatuses(t *testing.T) {
 			Filename:  "file.pdf",
 			Status:    status,
 			CreatedAt: createdAt,
+			UpdatedAt: createdAt.Add(2 * time.Hour),
 		}
 
 		payload := swaggerDocumentFromModel(doc)
@@ -90,6 +95,7 @@ func TestDocumentResponsePayloadSupportsAllStatuses(t *testing.T) {
 			Filename:  "file.pdf",
 			Status:    status,
 			CreatedAt: createdAt,
+			UpdatedAt: createdAt.Add(2 * time.Hour),
 		}
 
 		payload := documentResponsePayload("Document fetched successfully", doc)
@@ -98,6 +104,9 @@ func TestDocumentResponsePayloadSupportsAllStatuses(t *testing.T) {
 		}
 		if payload.Document.Status == nil || *payload.Document.Status != status {
 			t.Fatalf("expected status %q, got %#v", status, payload.Document.Status)
+		}
+		if payload.Document.UpdatedAt == nil || !time.Time(*payload.Document.UpdatedAt).Equal(doc.UpdatedAt) {
+			t.Fatalf("expected updated_at %s, got %#v", doc.UpdatedAt.Format(time.RFC3339), payload.Document.UpdatedAt)
 		}
 	}
 }
