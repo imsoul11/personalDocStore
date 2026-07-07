@@ -397,7 +397,8 @@ func init() {
         },
         "updated_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "example": "2026-01-02T05:04:05Z"
         },
         "user_id": {
           "type": "integer",
@@ -968,7 +969,8 @@ func init() {
         },
         "updated_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "example": "2026-01-02T05:04:05Z"
         },
         "user_id": {
           "type": "integer",

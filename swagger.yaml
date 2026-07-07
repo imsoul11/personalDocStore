@@ -228,9 +228,11 @@ definitions:
       created_at:
         type: string
         format: date-time
+        example: "2026-01-02T03:04:05Z"
       updated_at:
         type: string
         format: date-time
+        example: "2026-01-02T05:04:05Z"
 
   DocumentCreatedResponse:
     type: object

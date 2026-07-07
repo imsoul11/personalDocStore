@@ -21,6 +21,7 @@ import (
 type Document struct {
 
 	// created at
+	// Example: 2026-01-02T03:04:05Z
 	// Required: true
 	// Format: date-time
 	CreatedAt *strfmt.DateTime `json:"created_at"`
@@ -39,6 +40,7 @@ type Document struct {
 	Status *string `json:"status"`
 
 	// updated at
+	// Example: 2026-01-02T05:04:05Z
 	// Required: true
 	// Format: date-time
 	UpdatedAt *strfmt.DateTime `json:"updated_at"`
