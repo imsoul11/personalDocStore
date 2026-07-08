@@ -30,17 +30,17 @@ type GetDocumentsParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*Maximum number of documents to return
+	/*Maximum number of documents to return for this page
 	  In: query
 	*/
 	Limit *int64
 
-	/*Number of documents to skip
+	/*Number of documents to skip before starting this page
 	  In: query
 	*/
 	Offset *int64
 
-	/*Optional document status to filter by
+	/*Optional document status filter
 	  In: query
 	*/
 	Status *string

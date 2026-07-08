@@ -45,11 +45,52 @@ func init() {
           "application/json"
         ],
         "summary": "List documents for the current user",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 50,
+            "x-example": 20,
+            "description": "Maximum number of documents to return for this page",
+            "name": "limit",
+            "in": "query",
+            "minimum": 1
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 0,
+            "x-example": 40,
+            "description": "Number of documents to skip before starting this page",
+            "name": "offset",
+            "in": "query",
+            "minimum": 0
+          },
+          {
+            "type": "string",
+            "enum": [
+              "uploaded",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "x-example": "completed",
+            "description": "Optional document status filter",
+            "name": "status",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of documents",
             "schema": {
               "$ref": "#/definitions/DocumentsListResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           },
           "401": {
@@ -617,11 +658,52 @@ func init() {
           "application/json"
         ],
         "summary": "List documents for the current user",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 50,
+            "x-example": 20,
+            "description": "Maximum number of documents to return for this page",
+            "name": "limit",
+            "in": "query",
+            "minimum": 1
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 0,
+            "x-example": 40,
+            "description": "Number of documents to skip before starting this page",
+            "name": "offset",
+            "in": "query",
+            "minimum": 0
+          },
+          {
+            "type": "string",
+            "enum": [
+              "uploaded",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "x-example": "completed",
+            "description": "Optional document status filter",
+            "name": "status",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of documents",
             "schema": {
               "$ref": "#/definitions/DocumentsListResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           },
           "401": {
